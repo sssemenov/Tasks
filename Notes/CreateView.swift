@@ -16,6 +16,8 @@ struct CreateView: View {
     @ObservedObject var viewModel: NotesViewModel
     @State private var content: String
     @State private var selectedTab: Tab
+    @State private var dueDate: Date = Date()
+    @State private var hasDueDate: Bool = false
     let isNewNote: Bool
     let existingNote: Note?
     @FocusState private var isContentFocused: Bool
@@ -26,6 +28,10 @@ struct CreateView: View {
         self.existingNote = existingNote
         _content = State(initialValue: existingNote?.content ?? "")
         _selectedTab = State(initialValue: existingNote?.type == .task ? .task : .note)
+        if let existingDueDate = existingNote?.dueDate {
+            _dueDate = State(initialValue: existingDueDate)
+            _hasDueDate = State(initialValue: true)
+        }
     }
     
     var body: some View {
@@ -46,10 +52,17 @@ struct CreateView: View {
                     .focused($isContentFocused)
                 
                 if selectedTab == .task {
-                    // Add task-specific UI elements here later
-                    Rectangle()
-                        .fill(Color.clear)
-                        .frame(height: 44)
+                    VStack(spacing: 8) {
+                        Toggle("Set Due Date", isOn: $hasDueDate)
+                            .padding(.horizontal)
+                        
+                        if hasDueDate {
+                            DatePicker("Due Date", selection: $dueDate, displayedComponents: .date)
+                                .datePickerStyle(.compact)
+                                .padding(.horizontal)
+                        }
+                    }
+                    .padding(.vertical)
                 }
                 
                 Rectangle()
@@ -78,9 +91,17 @@ struct CreateView: View {
                     Button("Save") {
                         if !content.isEmpty {
                             if isNewNote {
-                                viewModel.addNote(content: content, type: selectedTab == .note ? .note : .task)
+                                viewModel.addNote(
+                                    content: content,
+                                    type: selectedTab == .note ? .note : .task,
+                                    dueDate: hasDueDate ? dueDate : nil
+                                )
                             } else if let note = existingNote {
-                                viewModel.updateNote(note: note, newContent: content)
+                                viewModel.updateNote(
+                                    note: note,
+                                    newContent: content,
+                                    newDueDate: hasDueDate ? dueDate : nil
+                                )
                             }
                             dismiss()
                         }

@@ -11,13 +11,14 @@ struct Note: Identifiable {
     var date: Date
     var type: ItemType
     var isDone: Bool = false
+    var dueDate: Date?
 }
 
 class NotesViewModel: ObservableObject {
     @Published var notes: [Note] = []
     
-    func addNote(content: String, type: ItemType) {
-        let note = Note(content: content, date: Date(), type: type)
+    func addNote(content: String, type: ItemType, dueDate: Date? = nil) {
+        let note = Note(content: content, date: Date(), type: type, isDone: false, dueDate: dueDate)
         notes.insert(note, at: 0)
     }
     
@@ -25,9 +26,10 @@ class NotesViewModel: ObservableObject {
         notes.remove(atOffsets: offsets)
     }
     
-    func updateNote(note: Note, newContent: String) {
+    func updateNote(note: Note, newContent: String, newDueDate: Date? = nil) {
         if let index = notes.firstIndex(where: { $0.id == note.id }) {
             notes[index].content = newContent
+            notes[index].dueDate = newDueDate
         }
     }
     
@@ -39,132 +41,107 @@ class NotesViewModel: ObservableObject {
 }
 
 struct ContentView: View {
-    @State private var AnimatedIcon = false
     @StateObject private var viewModel = NotesViewModel()
     @State private var showingNoteSheet = false
     @State private var selectedNote: Note?
     
-    // Compute two arrays for left and right columns
-    var columnItems: (left: [Note], right: [Note]) {
-        var leftColumn: [Note] = []
-        var rightColumn: [Note] = []
-        
-        for (index, note) in viewModel.notes.enumerated() {
-            if index % 2 == 0 {
-                leftColumn.append(note)
-            } else {
-                rightColumn.append(note)
-            }
-        }
-        
-        return (leftColumn, rightColumn)
+    var notes: [Note] {
+        viewModel.notes.filter { $0.type == .note }
+    }
+    
+    var tasks: [Note] {
+        viewModel.notes.filter { $0.type == .task }
     }
     
     var body: some View {
         NavigationView {
-            ZStack {
-                Group {
-                    if viewModel.notes.isEmpty {
-                        VStack {
-                            VStack(spacing: 4) {
-                                Text("Nothing here yet")
-                                    .font(.title2)
-                                    .fontWeight(.medium)
-                                
-                                Text("Tap + to create your first note or task")
-                                    .foregroundColor(.secondary)
-                            }
-                        }
-                        .frame(maxWidth: .infinity, maxHeight: .infinity)
-                        .background(Color("Background"))
-                        
+            VStack(alignment: .leading, spacing: 20) {
+                // Notes Section
+                VStack(alignment: .leading) {
+                    Text("Notes")
+                        .font(.title2)
+                        .fontWeight(.bold)
+                    
+                    if notes.isEmpty {
+                        Text("No notes yet")
+                            .foregroundColor(.secondary)
+                            .padding(.vertical)
                     } else {
-                        ScrollView {
-                            HStack(alignment: .top, spacing: 16) {
-                                // Left Column
-                                VStack(spacing: 16) {
-                                    ForEach(columnItems.left) { note in
-                                        noteOrTaskView(for: note)
-                                    }
-                                }
-                                
-                                // Right Column
-                                VStack(spacing: 16) {
-                                    ForEach(columnItems.right) { note in
-                                        noteOrTaskView(for: note)
-                                    }
+                        ScrollView(.horizontal, showsIndicators: false) {
+                            HStack(spacing: 16) {
+                                ForEach(notes) { note in
+                                    NoteView(content: note.content, date: note.date)
+                                        .frame(width: 250)
                                 }
                             }
-                            .padding()
-                            .padding(.bottom, 80) // Add padding for the floating button
+                            .padding(.horizontal)
                         }
                     }
                 }
                 
-                // Floating Action Button
-                VStack {
-                    Spacer()
-                    Button(action: {
-                        selectedNote = nil
-                        showingNoteSheet = true
-                    }) {
-                        Image(systemName: "plus")
-                            .font(.title2)
-                            .fontWeight(.semibold)
-                            .foregroundColor(.white)
-                            .frame(width: 56, height: 56)
-                            .background(Color.blue)
-                            .clipShape(Circle())
-                            //.shadow(color: .black.opacity(0.2), radius: 10, x: 0, y: 5)
+                // Tasks Section
+                VStack(alignment: .leading) {
+                    Text("Tasks")
+                        .font(.title2)
+                        .fontWeight(.bold)
+                    
+                    if tasks.isEmpty {
+                        Text("No tasks yet")
+                            .foregroundColor(.secondary)
+                            .padding(.vertical)
+                    } else {
+                        ScrollView {
+                            LazyVStack(spacing: 12) {
+                                ForEach(tasks) { task in
+                                    TaskView(content: task.content,
+                                             date: task.date,
+                                             isDone: task.isDone,
+                                             dueDate: task.dueDate,
+                                             note: task,
+                                             viewModel: viewModel)
+                                        .onTapGesture {
+                                            viewModel.toggleTaskDone(note: task)
+                                        }
+                                }
+                            }
+                        }
                     }
-                    .padding(.bottom, 16)
                 }
+                
+                Spacer()
             }
-            .navigationTitle("Notes")
+            .padding()
+            .navigationTitle("Journal")
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button(action: {
-                        // Handle profile button action
+                        // Handle search action
                     }) {
-                        Image(systemName: "person.circle.fill")
-                            .font(.body)
-                            .foregroundColor(.secondary)
+                        Image(systemName: "magnifyingglass")
+                            .foregroundColor(.primary)
                     }
                 }
+            }
+            .overlay(alignment: .bottom) {
+                Button(action: {
+                    selectedNote = nil
+                    showingNoteSheet = true
+                }) {
+                    Image(systemName: "plus")
+                        .font(.title2)
+                        .fontWeight(.semibold)
+                        .foregroundColor(.white)
+                        .frame(width: 56, height: 56)
+                        .background(Color.black)
+                        .clipShape(Circle())
+                }
+                .padding(.bottom, 16)
             }
             .sheet(isPresented: $showingNoteSheet) {
                 CreateView(viewModel: viewModel, existingNote: selectedNote)
             }
             .sheet(item: $selectedNote) { note in
                 CreateView(viewModel: viewModel, existingNote: note)
-            }
-            .background(Color("Background"))
-        }
-    }
-    
-    @ViewBuilder
-    private func noteOrTaskView(for note: Note) -> some View {
-        Group {
-            if note.type == .note {
-                NoteView(content: note.content, date: note.date)
-            } else {
-                TaskView(content: note.content, date: note.date, isDone: note.isDone)
-                    .onTapGesture {
-                        if note.type == .task {
-                            viewModel.toggleTaskDone(note: note)
-                        } else {
-                            selectedNote = note
-                        }
-                    }
-            }
-        }
-        .contextMenu {
-            Button(role: .destructive) {
-                if let index = viewModel.notes.firstIndex(where: { $0.id == note.id }) {
-                    viewModel.deleteNote(at: IndexSet(integer: index))
-                }
-            } label: {
-                Label("Delete", systemImage: "trash")
             }
         }
     }

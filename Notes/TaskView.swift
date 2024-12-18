@@ -4,52 +4,57 @@ struct TaskView: View {
     let content: String
     let date: Date
     let isDone: Bool
+    let dueDate: Date?
+    @State private var showingEditSheet = false
+    let note: Note
+    @ObservedObject var viewModel: NotesViewModel
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
+        HStack(alignment: .center, spacing: 12) {
+            // Checkbox
+            Image(systemName: isDone ? "checkmark.square.fill" : "square")
+                .foregroundColor(isDone ? .gray : .primary)
+                .font(.system(size: 24))
             
-            HStack {
-                Text(date, style: .date)
-                    .font(.caption)
-                    .foregroundColor(.primary.opacity(0.6))
+            HStack(alignment: .center, spacing: 4) {
+                Text(content)
+                    .strikethrough(isDone)
+                    .foregroundColor(isDone ? .secondary : .primary)
+                    .lineLimit(1)
+                    .truncationMode(.tail)
                 
                 Spacer()
                 
-                Image(systemName: isDone ? "checkmark.circle.fill" : "circle")
-                    .foregroundColor(isDone ? .green : .gray)
+                if let dueDate = dueDate {
+                    Button(action: {
+                        showingEditSheet = true
+                    }) {
+                        HStack(spacing: 4) {
+                            Image(systemName: "flag")
+                                .font(.caption)
+                            Text(formattedDueDate(dueDate))
+                                .font(.caption)
+                        }
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 4)
+                        .background(isDone ? Color.gray.opacity(0.2) : (dueDate < Date() ? Color.red.opacity(0.2) : Color.primary.opacity(0.1)))
+                        .cornerRadius(6)
+                        .foregroundColor(isDone ? .secondary : (dueDate < Date() ? .red : .primary))
+                    }
+                }
             }
-            
-            HStack(alignment: .top) {
-                
-                
-                Text(content)
-                    .font(.subheadline)
-                    .strikethrough(isDone)
-                    .lineLimit(4)
-                    .multilineTextAlignment(.leading)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-            }
-            
-            
         }
-        .padding()
-        .background(isDone ? Color("Grey") : Color("Blue"))
-        .cornerRadius(20)
-        .shadow(color: Color(hex: "383329").opacity(0.01), radius: 10, x: 0, y: 6)
-        .overlay(
-            RoundedRectangle(cornerRadius: 20)
-                .strokeBorder(
-                    LinearGradient(
-                        colors:[
-                            Color(hex: "000000").opacity(0.1),
-                            Color(hex: "FFFFFF").opacity(0.1)
-                        ],
-                        startPoint: .bottom,
-                        endPoint: .top
-                    ),
-                    lineWidth: 1
-            )
-        )
+        .padding(.vertical, 16)
+        //.background(Color("Blue").opacity(0.5))
+        .sheet(isPresented: $showingEditSheet) {
+            CreateView(viewModel: viewModel, existingNote: note)
+        }
+    }
+    
+    private func formattedDueDate(_ date: Date) -> String {
+        let formatter = DateFormatter()
+        formatter.dateFormat = Calendar.current.isDate(date, equalTo: Date(), toGranularity: .year) ? "MMM d" : "MMM d, yyyy"
+        return formatter.string(from: date)
     }
 }
 
@@ -61,31 +66,72 @@ struct TaskView: View {
                 .ignoresSafeArea()
             
             VStack(spacing: 16) {
-                TaskView(content: "Short task", date: Date(), isDone: false)
-                TaskView(content: "Long task with multiple lines\n• First item to do\n• Second item to do\n• Third item to do", date: Date(), isDone: true)
-            }
-            .padding()
-        }
-        
-        // Half width preview
-        ZStack {
-            Color(hex: "FFFEFA")
-                .ignoresSafeArea()
-            
-            HStack(alignment: .top, spacing: 16) {
-                // Left column
-                VStack(spacing: 16) {
-                    TaskView(content: "Short task new way to learn new stuff", date: Date(), isDone: false)
-                    TaskView(content: "Medium task\n• First item", date: Date(), isDone: true)
-                }
-                .frame(maxWidth: .infinity)
+                // Create a mock viewModel for preview
+                let viewModel = NotesViewModel()
                 
-                // Right column (for size reference)
-                VStack(spacing: 16) {
-                    TaskView(content: "Another task", date: Date(), isDone: true)
-                    TaskView(content: "Finalize presentation for client pitch.", date: Date(), isDone: false)
-                }
-                .frame(maxWidth: .infinity)
+                // Task without due date
+                let taskNoDueDate = Note(
+                    content: "Simple task without due date",
+                    date: Date(),
+                    type: .task,
+                    isDone: false
+                )
+                
+                // Task with future due date
+                let taskFutureDueDate = Note(
+                    content: "Task with future due date",
+                    date: Date(),
+                    type: .task,
+                    isDone: false,
+                    dueDate: Date().addingTimeInterval(86400 * 2)
+                )
+                
+                // Task with past due date
+                let taskPastDueDate = Note(
+                    content: "Task with past due date",
+                    date: Date(),
+                    type: .task,
+                    isDone: false,
+                    dueDate: Date().addingTimeInterval(-86400)
+                )
+                
+                // Completed task with due date
+                let taskCompleted = Note(
+                    content: "Completed task with due date",
+                    date: Date(),
+                    type: .task,
+                    isDone: true,
+                    dueDate: Date().addingTimeInterval(86400)
+                )
+                
+                // Display all variations
+                TaskView(content: taskNoDueDate.content,
+                       date: taskNoDueDate.date,
+                       isDone: taskNoDueDate.isDone,
+                       dueDate: taskNoDueDate.dueDate,
+                       note: taskNoDueDate,
+                       viewModel: viewModel)
+                
+                TaskView(content: taskFutureDueDate.content,
+                       date: taskFutureDueDate.date,
+                       isDone: taskFutureDueDate.isDone,
+                       dueDate: taskFutureDueDate.dueDate,
+                       note: taskFutureDueDate,
+                       viewModel: viewModel)
+                
+                TaskView(content: taskPastDueDate.content,
+                       date: taskPastDueDate.date,
+                       isDone: taskPastDueDate.isDone,
+                       dueDate: taskPastDueDate.dueDate,
+                       note: taskPastDueDate,
+                       viewModel: viewModel)
+                
+                TaskView(content: taskCompleted.content,
+                       date: taskCompleted.date,
+                       isDone: taskCompleted.isDone,
+                       dueDate: taskCompleted.dueDate,
+                       note: taskCompleted,
+                       viewModel: viewModel)
             }
             .padding()
         }
