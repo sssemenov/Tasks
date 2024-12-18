@@ -62,99 +62,73 @@ struct ContentView: View {
     
     var body: some View {
         NavigationView {
-            Group {
-                if viewModel.notes.isEmpty {
-                    VStack{
-                        Image(systemName: "note.text")
-                            .font(.system(size: 60))
-                            .foregroundColor(.secondary)
-                            .padding(16)
+            ZStack {
+                Group {
+                    if viewModel.notes.isEmpty {
+                        VStack {
+                            VStack(spacing: 4) {
+                                Text("Nothing here yet")
+                                    .font(.title2)
+                                    .fontWeight(.medium)
+                                
+                                Text("Tap + to create your first note or task")
+                                    .foregroundColor(.secondary)
+                            }
+                        }
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                        .background(Color("Background"))
                         
-                        VStack(spacing: 4) {
-                            Text("No Items Yet")
-                                .font(.title2)
-                                .fontWeight(.medium)
-
-                            Text("Tap + to create your first note or task")
-                                .foregroundColor(.secondary)
-                        }
-                    }
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
-                    .background(Color("Background"))
-                    
-                } else {
-                    ScrollView {
-                        HStack(alignment: .top, spacing: 16) {
-                            // Left Column
-                            VStack(spacing: 16) {
-                                ForEach(columnItems.left) { note in
-                                    Group {
-                                        if note.type == .note {
-                                            NoteView(content: note.content, date: note.date)
-                                        } else {
-                                            TaskView(content: note.content, date: note.date, isDone: note.isDone)
-                                                .onTapGesture {
-                                                    if note.type == .task {
-                                                        viewModel.toggleTaskDone(note: note)
-                                                    } else {
-                                                        selectedNote = note
-                                                    }
-                                                }
-                                        }
+                    } else {
+                        ScrollView {
+                            HStack(alignment: .top, spacing: 16) {
+                                // Left Column
+                                VStack(spacing: 16) {
+                                    ForEach(columnItems.left) { note in
+                                        noteOrTaskView(for: note)
                                     }
-                                    .contextMenu {
-                                        Button(role: .destructive) {
-                                            if let index = viewModel.notes.firstIndex(where: { $0.id == note.id }) {
-                                                viewModel.deleteNote(at: IndexSet(integer: index))
-                                            }
-                                        } label: {
-                                            Label("Delete", systemImage: "trash")
-                                        }
+                                }
+                                
+                                // Right Column
+                                VStack(spacing: 16) {
+                                    ForEach(columnItems.right) { note in
+                                        noteOrTaskView(for: note)
                                     }
                                 }
                             }
-                            
-                            // Right Column
-                            VStack(spacing: 16) {
-                                ForEach(columnItems.right) { note in
-                                    Group {
-                                        if note.type == .note {
-                                            NoteView(content: note.content, date: note.date)
-                                        } else {
-                                            TaskView(content: note.content, date: note.date, isDone: note.isDone)
-                                                .onTapGesture {
-                                                    if note.type == .task {
-                                                        viewModel.toggleTaskDone(note: note)
-                                                    } else {
-                                                        selectedNote = note
-                                                    }
-                                                }
-                                        }
-                                    }
-                                    .contextMenu {
-                                        Button(role: .destructive) {
-                                            if let index = viewModel.notes.firstIndex(where: { $0.id == note.id }) {
-                                                viewModel.deleteNote(at: IndexSet(integer: index))
-                                            }
-                                        } label: {
-                                            Label("Delete", systemImage: "trash")
-                                        }
-                                    }
-                                }
-                            }
+                            .padding()
+                            .padding(.bottom, 80) // Add padding for the floating button
                         }
-                        .padding()
                     }
+                }
+                
+                // Floating Action Button
+                VStack {
+                    Spacer()
+                    Button(action: {
+                        selectedNote = nil
+                        showingNoteSheet = true
+                    }) {
+                        Image(systemName: "plus")
+                            .font(.title2)
+                            .fontWeight(.semibold)
+                            .foregroundColor(.white)
+                            .frame(width: 56, height: 56)
+                            .background(Color.blue)
+                            .clipShape(Circle())
+                            //.shadow(color: .black.opacity(0.2), radius: 10, x: 0, y: 5)
+                    }
+                    .padding(.bottom, 16)
                 }
             }
             .navigationTitle("Notes")
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button(action: {
-                        selectedNote = nil
-                        showingNoteSheet = true
+                        // Handle profile button action
                     }) {
-                        Image(systemName: "plus")
+                        Image(systemName: "person.circle.fill")
+                            .font(.body)
+                            .foregroundColor(.secondary)
                     }
                 }
             }
@@ -165,6 +139,33 @@ struct ContentView: View {
                 CreateView(viewModel: viewModel, existingNote: note)
             }
             .background(Color("Background"))
+        }
+    }
+    
+    @ViewBuilder
+    private func noteOrTaskView(for note: Note) -> some View {
+        Group {
+            if note.type == .note {
+                NoteView(content: note.content, date: note.date)
+            } else {
+                TaskView(content: note.content, date: note.date, isDone: note.isDone)
+                    .onTapGesture {
+                        if note.type == .task {
+                            viewModel.toggleTaskDone(note: note)
+                        } else {
+                            selectedNote = note
+                        }
+                    }
+            }
+        }
+        .contextMenu {
+            Button(role: .destructive) {
+                if let index = viewModel.notes.firstIndex(where: { $0.id == note.id }) {
+                    viewModel.deleteNote(at: IndexSet(integer: index))
+                }
+            } label: {
+                Label("Delete", systemImage: "trash")
+            }
         }
     }
 }
