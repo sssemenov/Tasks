@@ -56,52 +56,62 @@ struct ContentView: View {
     var body: some View {
         NavigationView {
             VStack(alignment: .leading, spacing: 20) {
-                // Notes Section
-                VStack(alignment: .leading) {
-                    Text("Notes")
-                        .font(.title2)
-                        .fontWeight(.bold)
+                if notes.isEmpty && tasks.isEmpty {
+                    Spacer()
+                    Text("Nothing here, yet. Add note or task")
+                        .foregroundColor(.secondary)
+                        .multilineTextAlignment(.center)
+                    Spacer()
+                } else {
+                    // Determine if both sections have content
+                    let showSectionTitles = !notes.isEmpty && !tasks.isEmpty
                     
-                    if notes.isEmpty {
-                        Text("No notes yet")
-                            .foregroundColor(.secondary)
-                            .padding(.vertical)
-                    } else {
-                        ScrollView(.horizontal, showsIndicators: false) {
-                            HStack(spacing: 16) {
-                                ForEach(notes) { note in
-                                    NoteView(content: note.content, date: note.date)
-                                        .frame(width: 250)
+                    // Notes Section
+                    if !notes.isEmpty {
+                        VStack(alignment: .leading) {
+                            if showSectionTitles {
+                                Text("Notes")
+                                    .font(.subheadline)
+                                    .fontWeight(.bold)
+                            }
+                            
+                            ScrollView(.horizontal, showsIndicators: false) {
+                                HStack() {
+                                    ForEach(notes) { note in
+                                        NoteView(content: note.content, date: note.date)
+                                            .onTapGesture {
+                                                selectedNote = note
+                                            }
+                                    }
                                 }
                             }
-                            .padding(.horizontal)
                         }
+                        .edgesIgnoringSafeArea(.all)
                     }
-                }
-                
-                // Tasks Section
-                VStack(alignment: .leading) {
-                    Text("Tasks")
-                        .font(.title2)
-                        .fontWeight(.bold)
                     
-                    if tasks.isEmpty {
-                        Text("No tasks yet")
-                            .foregroundColor(.secondary)
-                            .padding(.vertical)
-                    } else {
-                        ScrollView {
-                            LazyVStack(spacing: 12) {
-                                ForEach(tasks) { task in
-                                    TaskView(content: task.content,
-                                             date: task.date,
-                                             isDone: task.isDone,
-                                             dueDate: task.dueDate,
-                                             note: task,
-                                             viewModel: viewModel)
-                                        .onTapGesture {
-                                            viewModel.toggleTaskDone(note: task)
-                                        }
+                    // Tasks Section
+                    if !tasks.isEmpty {
+                        VStack(alignment: .leading) {
+                            if showSectionTitles {
+                                Text("Tasks")
+                                    .font(.subheadline)
+                                    .fontWeight(.bold)
+                            }
+                            
+                            ScrollView {
+                                LazyVStack(spacing: 0) {
+                                    ForEach(tasks) { task in
+                                        TaskView(content: task.content,
+                                                 date: task.date,
+                                                 isDone: task.isDone,
+                                                 dueDate: task.dueDate,
+                                                 note: task,
+                                                 viewModel: viewModel)
+                                            .onTapGesture {
+                                                viewModel.toggleTaskDone(note: task)
+                                            }
+                                        Divider()
+                                    }
                                 }
                             }
                         }
@@ -110,6 +120,7 @@ struct ContentView: View {
                 
                 Spacer()
             }
+            .edgesIgnoringSafeArea(.all)
             .padding()
             .navigationTitle("Journal")
             .toolbar {
@@ -144,6 +155,7 @@ struct ContentView: View {
                 CreateView(viewModel: viewModel, existingNote: note)
             }
         }
+        .edgesIgnoringSafeArea(.all)
     }
 }
 

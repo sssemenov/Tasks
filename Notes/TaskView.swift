@@ -22,6 +22,9 @@ struct TaskView: View {
                     .foregroundColor(isDone ? .secondary : .primary)
                     .lineLimit(1)
                     .truncationMode(.tail)
+                    .onTapGesture {
+                        showingEditSheet = true
+                    }
                 
                 Spacer()
                 
@@ -45,7 +48,6 @@ struct TaskView: View {
             }
         }
         .padding(.vertical, 16)
-        //.background(Color("Blue").opacity(0.5))
         .sheet(isPresented: $showingEditSheet) {
             CreateView(viewModel: viewModel, existingNote: note)
         }
