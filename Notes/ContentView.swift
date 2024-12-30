@@ -161,9 +161,9 @@ struct ContentView: View {
                     Image(systemName: "plus")
                         .font(.title2)
                         .fontWeight(.semibold)
-                        .foregroundColor(.white)
+                        .foregroundColor(Color(UIColor.systemGray6))
                         .frame(width: 56, height: 56)
-                        .background(Color.black)
+                        .background(Color.primary)
                         .clipShape(Circle())
                 }
                 //.padding(.bottom, 16)

@@ -43,7 +43,7 @@ struct TaskView: View {
                                     .font(.caption)
                             }
                             .padding(.horizontal, 8)
-                            .padding(.vertical, 4)
+                            .padding(.vertical, 6)
                             .background(isDone ? Color.gray.opacity(0.2) : (dueDate < Date() ? Color.red.opacity(0.2) : Color.primary.opacity(0.1)))
                             .cornerRadius(6)
                             .foregroundColor(isDone ? .secondary : (dueDate < Date() ? .red : .primary))

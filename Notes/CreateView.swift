@@ -45,11 +45,11 @@ struct CreateView: View {
                         showingDatePicker.toggle()
                     }) {
                         HStack {
-                            Image(systemName: "flag")
+                            Image(systemName: hasDueDate ? "flag.fill" : "flag")
                             Text(hasDueDate ? "\(formattedDueDate(dueDate))" : "Due date")
                         }
                         .padding()
-                        .background(Color(UIColor.systemGray6))
+                        .background(Color(UIColor.secondarySystemBackground))
                         .foregroundColor(.primary)
                         .cornerRadius(8)
                     }
@@ -62,9 +62,9 @@ struct CreateView: View {
                             Image(systemName: "multiply")
                                 .foregroundColor(.primary)
                         }
-                        .padding()
-                        .background(Color(UIColor.systemGray6))
-                        .cornerRadius(8)
+                        .padding(20)
+                        .background(Color(UIColor.secondarySystemBackground))
+                        .cornerRadius(999)
                     }
                     
                     Spacer()
