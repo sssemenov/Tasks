@@ -61,13 +61,16 @@ struct ContentView: View {
     
     var body: some View {
         NavigationView {
-            VStack(alignment: .leading, spacing: 20) {
+            VStack(alignment: .center, spacing: 4) {
                 if notes.isEmpty && tasks.isEmpty {
                     Spacer()
-                    Text("Nothing here, yet. Add note or task")
+                    Text("Nothing here, yet")
+                        .foregroundColor(.secondary)
+                        .fontWeight(.medium)
+                    Text("Add tasks to get started.")
                         .foregroundColor(.secondary)
                         .multilineTextAlignment(.center)
-                    Spacer()
+                    //Spacer()
                 } else {
                     ScrollView {
                         VStack(alignment: .leading, spacing: 20) {

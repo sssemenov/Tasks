@@ -33,7 +33,7 @@ struct CreateView: View {
     var body: some View {
         NavigationView {
             VStack(spacing: 0) {
-                TextField("Write something...", text: $content, axis: .vertical)
+                TextField("New Task", text: $content, axis: .vertical)
                     .font(.body)
                     .padding()
                     .focused($isContentFocused)
@@ -45,11 +45,12 @@ struct CreateView: View {
                         showingDatePicker.toggle()
                     }) {
                         HStack {
-                            Image(systemName: "calendar")
-                            Text(hasDueDate ? "Due Date: \(formattedDueDate(dueDate))" : "Add due date")
+                            Image(systemName: "flag")
+                            Text(hasDueDate ? "\(formattedDueDate(dueDate))" : "Due date")
                         }
                         .padding()
-                        .background(Color.blue.opacity(0.1))
+                        .background(Color(UIColor.systemGray6))
+                        .foregroundColor(.primary)
                         .cornerRadius(8)
                     }
                     
@@ -58,10 +59,12 @@ struct CreateView: View {
                             hasDueDate = false
                             dueDate = Date()
                         }) {
-                            Image(systemName: "trash")
-                                .foregroundColor(.red)
+                            Image(systemName: "multiply")
+                                .foregroundColor(.primary)
                         }
-                        .padding(.leading, 8)
+                        .padding()
+                        .background(Color(UIColor.systemGray6))
+                        .cornerRadius(8)
                     }
                     
                     Spacer()
@@ -76,13 +79,15 @@ struct CreateView: View {
                     isContentFocused = true
                 }
             }
-            .navigationTitle(existingNote == nil ? "New Task" : "Edit Task")
+            //.navigationTitle(existingNote == nil ? "New Task" : "Edit")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
                     Button("Cancel") {
                         dismiss()
                     }
+                    .foregroundColor(.secondary)
+
                 }
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button("Save") {
@@ -104,6 +109,7 @@ struct CreateView: View {
                         }
                     }
                     .disabled(content.isEmpty)
+                    .foregroundColor(content.isEmpty ? Color(UIColor.systemGray5) : .primary)
                 }
             }
             .sheet(isPresented: $showingDatePicker) {
@@ -136,7 +142,7 @@ struct CreateView: View {
     
     private func formattedDueDate(_ date: Date) -> String {
         let formatter = DateFormatter()
-        formatter.dateStyle = .medium
+        formatter.dateFormat = Calendar.current.isDate(date, equalTo: Date(), toGranularity: .year) ? "MMM d" : "MMM d, yyyy"
         return formatter.string(from: date)
     }
 }
