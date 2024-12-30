@@ -11,8 +11,8 @@ struct CreateView: View {
     @Environment(\.dismiss) private var dismiss
     @ObservedObject var viewModel: NotesViewModel
     @State private var content: String
-    @State private var dueDate: Date = Date()
-    @State private var hasDueDate: Bool = false
+    @State private var dueDate: Date
+    @State private var hasDueDate: Bool
     let existingNote: Note?
     @FocusState private var isContentFocused: Bool
     @State private var showingDatePicker = false
@@ -24,6 +24,9 @@ struct CreateView: View {
         if let existingDueDate = existingNote?.dueDate {
             _dueDate = State(initialValue: existingDueDate)
             _hasDueDate = State(initialValue: true)
+        } else {
+            _dueDate = State(initialValue: Date())
+            _hasDueDate = State(initialValue: false)
         }
     }
     
