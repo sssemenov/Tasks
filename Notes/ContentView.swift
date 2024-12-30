@@ -38,6 +38,12 @@ class NotesViewModel: ObservableObject {
             notes[index].isDone.toggle()
         }
     }
+    
+    func updateDueDate(for note: Note, to newDueDate: Date) {
+        if let index = notes.firstIndex(where: { $0.id == note.id }) {
+            notes[index].dueDate = newDueDate
+        }
+    }
 }
 
 struct ContentView: View {
@@ -63,42 +69,57 @@ struct ContentView: View {
                         .multilineTextAlignment(.center)
                     Spacer()
                 } else {
-                    // Determine if both sections have content
-                    let showSectionTitles = !notes.isEmpty && !tasks.isEmpty
-                    
-                    // Notes Section
-                    if !notes.isEmpty {
-                        VStack(alignment: .leading) {
-                            if showSectionTitles {
-                                Text("Notes")
-                                    .font(.subheadline)
-                                    .fontWeight(.bold)
-                            }
-                            
-                            ScrollView(.horizontal, showsIndicators: false) {
-                                HStack() {
-                                    ForEach(notes) { note in
-                                        NoteView(content: note.content, date: note.date)
-                                            .onTapGesture {
-                                                selectedNote = note
+                    ScrollView {
+                        VStack(alignment: .leading, spacing: 20) {
+                            if !notes.isEmpty && !tasks.isEmpty {
+                                VStack(alignment: .leading) {
+                                    Text("Notes")
+                                        .font(.subheadline)
+                                        .fontWeight(.bold)
+                                    
+                                    ScrollView(.horizontal, showsIndicators: false) {
+                                        HStack {
+                                            ForEach(notes) { note in
+                                                NoteView(content: note.content, date: note.date)
+                                                    .onTapGesture {
+                                                        selectedNote = note
+                                                    }
                                             }
+                                        }
+                                    }
+                                }
+                            } else if !notes.isEmpty {
+                                ScrollView(.horizontal, showsIndicators: false) {
+                                    HStack {
+                                        ForEach(notes) { note in
+                                            NoteView(content: note.content, date: note.date)
+                                                .onTapGesture {
+                                                    selectedNote = note
+                                                }
+                                        }
                                     }
                                 }
                             }
-                        }
-                        .edgesIgnoringSafeArea(.all)
-                    }
-                    
-                    // Tasks Section
-                    if !tasks.isEmpty {
-                        VStack(alignment: .leading) {
-                            if showSectionTitles {
-                                Text("Tasks")
-                                    .font(.subheadline)
-                                    .fontWeight(.bold)
-                            }
                             
-                            ScrollView {
+                            if !notes.isEmpty && !tasks.isEmpty {
+                                VStack(alignment: .leading) {
+                                    Text("Tasks")
+                                        .font(.subheadline)
+                                        .fontWeight(.bold)
+                                    
+                                    LazyVStack(spacing: 0) {
+                                        ForEach(tasks) { task in
+                                            TaskView(content: task.content,
+                                                     date: task.date,
+                                                     isDone: task.isDone,
+                                                     dueDate: task.dueDate,
+                                                     note: task,
+                                                     viewModel: viewModel)
+                                            Divider()
+                                        }
+                                    }
+                                }
+                            } else if !tasks.isEmpty {
                                 LazyVStack(spacing: 0) {
                                     ForEach(tasks) { task in
                                         TaskView(content: task.content,
@@ -107,9 +128,6 @@ struct ContentView: View {
                                                  dueDate: task.dueDate,
                                                  note: task,
                                                  viewModel: viewModel)
-                                            .onTapGesture {
-                                                viewModel.toggleTaskDone(note: task)
-                                            }
                                         Divider()
                                     }
                                 }
@@ -120,7 +138,6 @@ struct ContentView: View {
                 
                 Spacer()
             }
-            .edgesIgnoringSafeArea(.all)
             .padding()
             .navigationTitle("Journal")
             .toolbar {
@@ -146,7 +163,7 @@ struct ContentView: View {
                         .background(Color.black)
                         .clipShape(Circle())
                 }
-                .padding(.bottom, 16)
+                //.padding(.bottom, 16)
             }
             .sheet(isPresented: $showingNoteSheet) {
                 CreateView(viewModel: viewModel, existingNote: selectedNote)
@@ -155,11 +172,11 @@ struct ContentView: View {
                 CreateView(viewModel: viewModel, existingNote: note)
             }
         }
-        .edgesIgnoringSafeArea(.all)
+        .ignoresSafeArea()
     }
 }
 
 #Preview {
     ContentView()
-    
 }
+

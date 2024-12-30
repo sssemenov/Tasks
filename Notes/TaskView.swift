@@ -5,51 +5,79 @@ struct TaskView: View {
     let date: Date
     let isDone: Bool
     let dueDate: Date?
-    @State private var showingEditSheet = false
     let note: Note
-    @ObservedObject var viewModel: NotesViewModel
-    
+    @StateObject var viewModel: NotesViewModel
+    @State private var showingDatePicker = false
+    @State private var selectedDueDate: Date?
+    @State private var showingEditView = false
+
     var body: some View {
-        HStack(alignment: .center, spacing: 12) {
-            // Checkbox
-            Image(systemName: isDone ? "checkmark.square.fill" : "square")
-                .foregroundColor(isDone ? .gray : .primary)
-                .font(.system(size: 24))
-            
-            HStack(alignment: .center, spacing: 4) {
-                Text(content)
-                    .strikethrough(isDone)
-                    .foregroundColor(isDone ? .secondary : .primary)
-                    .lineLimit(1)
-                    .truncationMode(.tail)
+        VStack {
+            HStack(alignment: .center, spacing: 12) {
+                // Checkbox
+                Image(systemName: isDone ? "checkmark.square.fill" : "square")
+                    .foregroundColor(isDone ? .gray : .primary)
+                    .font(.system(size: 24))
                     .onTapGesture {
-                        showingEditSheet = true
+                        viewModel.toggleTaskDone(note: note)
                     }
                 
-                Spacer()
-                
-                if let dueDate = dueDate {
-                    Button(action: {
-                        showingEditSheet = true
-                    }) {
-                        HStack(spacing: 4) {
-                            Image(systemName: "flag")
-                                .font(.caption)
-                            Text(formattedDueDate(dueDate))
-                                .font(.caption)
+                HStack(alignment: .center, spacing: 4) {
+                    Text(content)
+                        .strikethrough(isDone)
+                        .foregroundColor(isDone ? .secondary : .primary)
+                        .lineLimit(1)
+                        .truncationMode(.tail)
+                    
+                    Spacer()
+                    
+                    if let dueDate = dueDate {
+                        Button(action: {
+                            showingDatePicker.toggle()
+                            selectedDueDate = dueDate
+                        }) {
+                            HStack(spacing: 4) {
+                                Image(systemName: "flag")
+                                    .font(.caption)
+                                Text(formattedDueDate(dueDate))
+                                    .font(.caption)
+                            }
+                            .padding(.horizontal, 8)
+                            .padding(.vertical, 4)
+                            .background(isDone ? Color.gray.opacity(0.2) : (dueDate < Date() ? Color.red.opacity(0.2) : Color.primary.opacity(0.1)))
+                            .cornerRadius(6)
+                            .foregroundColor(isDone ? .secondary : (dueDate < Date() ? .red : .primary))
                         }
-                        .padding(.horizontal, 8)
-                        .padding(.vertical, 4)
-                        .background(isDone ? Color.gray.opacity(0.2) : (dueDate < Date() ? Color.red.opacity(0.2) : Color.primary.opacity(0.1)))
-                        .cornerRadius(6)
-                        .foregroundColor(isDone ? .secondary : (dueDate < Date() ? .red : .primary))
+                        .sheet(isPresented: $showingDatePicker) {
+                            VStack {
+                                DatePicker("Select Due Date", selection: Binding(
+                                    get: { selectedDueDate ?? Date() },
+                                    set: { selectedDueDate = $0 }
+                                ), displayedComponents: .date)
+                                .datePickerStyle(.graphical)
+                                .padding()
+                                
+                                Button("Done") {
+                                    if let newDueDate = selectedDueDate {
+                                        viewModel.updateDueDate(for: note, to: newDueDate)
+                                    }
+                                    showingDatePicker = false
+                                }
+                                .padding()
+                            }
+                            .presentationDetents([.medium])
+                        }
                     }
                 }
             }
-        }
-        .padding(.vertical, 16)
-        .sheet(isPresented: $showingEditSheet) {
-            CreateView(viewModel: viewModel, existingNote: note)
+            .padding(.vertical, 16)
+            .contentShape(Rectangle()) // Make the entire HStack tappable
+            .onTapGesture {
+                showingEditView = true
+            }
+            .sheet(isPresented: $showingEditView) {
+                CreateView(viewModel: viewModel, existingNote: note)
+            }
         }
     }
     
