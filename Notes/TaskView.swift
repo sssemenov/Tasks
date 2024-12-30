@@ -57,13 +57,24 @@ struct TaskView: View {
                                 .datePickerStyle(.graphical)
                                 .padding()
                                 
-                                Button("Done") {
-                                    if let newDueDate = selectedDueDate {
-                                        viewModel.updateDueDate(for: note, to: newDueDate)
+                                HStack {
+                                    Button("Done") {
+                                        if let newDueDate = selectedDueDate {
+                                            viewModel.updateDueDate(for: note, to: newDueDate)
+                                        }
+                                        showingDatePicker = false
                                     }
-                                    showingDatePicker = false
+                                    .padding()
+                                    
+                                    Spacer()
+                                    
+                                    Button("Remove Due Date") {
+                                        viewModel.updateDueDate(for: note, to: nil)
+                                        showingDatePicker = false
+                                    }
+                                    .foregroundColor(.red)
+                                    .padding()
                                 }
-                                .padding()
                             }
                             .presentationDetents([.medium])
                         }

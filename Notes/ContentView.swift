@@ -22,7 +22,7 @@ class NotesViewModel: ObservableObject {
         notes.insert(note, at: 0)
     }
     
-    func deleteNote(at offsets: IndexSet) { 
+    func deleteNote(at offsets: IndexSet) {
         notes.remove(atOffsets: offsets)
     }
     
@@ -39,7 +39,7 @@ class NotesViewModel: ObservableObject {
         }
     }
     
-    func updateDueDate(for note: Note, to newDueDate: Date) {
+    func updateDueDate(for note: Note, to newDueDate: Date?) {
         if let index = notes.firstIndex(where: { $0.id == note.id }) {
             notes[index].dueDate = newDueDate
         }

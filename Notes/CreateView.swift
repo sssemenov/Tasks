@@ -8,26 +8,19 @@
 import SwiftUI
 
 struct CreateView: View {
-    enum Tab {
-        case note, task
-    }
-    
     @Environment(\.dismiss) private var dismiss
     @ObservedObject var viewModel: NotesViewModel
     @State private var content: String
-    @State private var selectedTab: Tab
     @State private var dueDate: Date = Date()
     @State private var hasDueDate: Bool = false
-    let isNewNote: Bool
     let existingNote: Note?
     @FocusState private var isContentFocused: Bool
+    @State private var showingDatePicker = false
     
     init(viewModel: NotesViewModel, existingNote: Note? = nil) {
         self.viewModel = viewModel
-        self.isNewNote = existingNote == nil
         self.existingNote = existingNote
         _content = State(initialValue: existingNote?.content ?? "")
-        _selectedTab = State(initialValue: existingNote?.type == .task ? .task : .note)
         if let existingDueDate = existingNote?.dueDate {
             _dueDate = State(initialValue: existingDueDate)
             _hasDueDate = State(initialValue: true)
@@ -37,49 +30,50 @@ struct CreateView: View {
     var body: some View {
         NavigationView {
             VStack(spacing: 0) {
-                if isNewNote {
-                    Picker("Type", selection: $selectedTab) {
-                        Text("Note").tag(Tab.note)
-                        Text("Task").tag(Tab.task)
-                    }
-                    .pickerStyle(.segmented)
-                    .padding()
-                }
-                
-                TextField(selectedTab == .note ? "Write something..." : "Add a task...", text: $content, axis: .vertical)
+                TextField("Write something...", text: $content, axis: .vertical)
                     .font(.body)
                     .padding()
                     .focused($isContentFocused)
                 
-                if selectedTab == .task {
-                    VStack(spacing: 8) {
-                        Toggle("Set Due Date", isOn: $hasDueDate)
-                            .padding(.horizontal)
-                        
-                        if hasDueDate {
-                            DatePicker("Due Date", selection: $dueDate, displayedComponents: .date)
-                                .datePickerStyle(.compact)
-                                .padding(.horizontal)
-                        }
-                    }
-                    .padding(.vertical)
-                }
-                
-                Rectangle()
-                    .fill(Color.clear)
-                    .contentShape(Rectangle())
-                
                 Spacer()
+                
+                HStack {
+                    Button(action: {
+                        showingDatePicker.toggle()
+                    }) {
+                        HStack {
+                            Image(systemName: "calendar")
+                            Text(hasDueDate ? "Due Date: \(formattedDueDate(dueDate))" : "Add due date")
+                        }
+                        .padding()
+                        .background(Color.blue.opacity(0.1))
+                        .cornerRadius(8)
+                    }
+                    
+                    if hasDueDate {
+                        Button(action: {
+                            hasDueDate = false
+                            dueDate = Date()
+                        }) {
+                            Image(systemName: "trash")
+                                .foregroundColor(.red)
+                        }
+                        .padding(.leading, 8)
+                    }
+                    
+                    Spacer()
+                }
+                .padding()
             }
             .onTapGesture {
                 isContentFocused = true
             }
             .onAppear {
-                if isNewNote {
+                if existingNote == nil {
                     isContentFocused = true
                 }
             }
-            .navigationTitle(isNewNote ? (selectedTab == .note ? "New Note" : "New Task") : "Edit")
+            .navigationTitle(existingNote == nil ? "New Task" : "Edit Task")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
@@ -90,10 +84,10 @@ struct CreateView: View {
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button("Save") {
                         if !content.isEmpty {
-                            if isNewNote {
+                            if existingNote == nil {
                                 viewModel.addNote(
                                     content: content,
-                                    type: selectedTab == .note ? .note : .task,
+                                    type: .task,
                                     dueDate: hasDueDate ? dueDate : nil
                                 )
                             } else if let note = existingNote {
@@ -109,7 +103,38 @@ struct CreateView: View {
                     .disabled(content.isEmpty)
                 }
             }
+            .sheet(isPresented: $showingDatePicker) {
+                VStack {
+                    DatePicker("Select Due Date", selection: $dueDate, displayedComponents: .date)
+                        .datePickerStyle(.graphical)
+                        .padding()
+                    
+                    HStack {
+                        Button("Done") {
+                            hasDueDate = true
+                            showingDatePicker = false
+                        }
+                        .padding()
+                        
+                        Spacer()
+                        
+                        Button("Remove Due Date") {
+                            hasDueDate = false
+                            showingDatePicker = false
+                        }
+                        .foregroundColor(.red)
+                        .padding()
+                    }
+                }
+                .presentationDetents([.medium])
+            }
         }
+    }
+    
+    private func formattedDueDate(_ date: Date) -> String {
+        let formatter = DateFormatter()
+        formatter.dateStyle = .medium
+        return formatter.string(from: date)
     }
 }
 
