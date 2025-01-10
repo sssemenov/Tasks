@@ -27,7 +27,7 @@ struct NoteView: View {
         }
         .padding(16)
         .frame(width: 170, height: 160, alignment: .top)
-        .background(Color("Yellow"))
+        .background(Color(hex: "383329"))
         .cornerRadius(20)
         .shadow(color: Color(hex: "383329").opacity(0.01), radius: 10, x: 0, y: 6)
         .overlay(

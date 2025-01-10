@@ -68,6 +68,7 @@ struct CreateView: View {
 //                        .cornerRadius(8)
                     }
                     
+                    
                     if hasDueDate {
                         Button(action: {
                             hasDueDate = false
@@ -83,6 +84,18 @@ struct CreateView: View {
                     }
                     
                     Spacer()
+                    
+                    Button(action: {
+                        hasDueDate = false
+                        dueDate = Date()
+                    }) {
+                        Image(systemName: "trash")
+                            .foregroundColor(.red)
+                    }
+                    .padding(20)
+                    .background(Color.red.opacity(0.2))
+                    .cornerRadius(8)
+                    .padding(.leading, 8)
                 }
                 .padding()
             }
@@ -129,7 +142,7 @@ struct CreateView: View {
                 VStack {
                     DatePicker("Select Due Date", selection: $dueDate, displayedComponents: .date)
                         .datePickerStyle(.graphical)
-                        .onChange(of: dueDate) { newDate in
+                        .onChange(of: dueDate) {
                             hasDueDate = true
                             showingDatePicker = false
                         }

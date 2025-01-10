@@ -1,21 +1,54 @@
 import SwiftUI
 
-enum ItemType {
+enum ItemType: String, Codable {
     case note
     case task
 }
 
-struct Note: Identifiable {
-    let id = UUID()
+struct Note: Identifiable, Codable {
+    let id: UUID
     var content: String
     var date: Date
     var type: ItemType
     var isDone: Bool = false
     var dueDate: Date?
+
+    enum CodingKeys: String, CodingKey {
+        case id, content, date, type, isDone, dueDate
+    }
+
+    init(id: UUID = UUID(), content: String, date: Date, type: ItemType, isDone: Bool = false, dueDate: Date? = nil) {
+        self.id = id
+        self.content = content
+        self.date = date
+        self.type = type
+        self.isDone = isDone
+        self.dueDate = dueDate
+    }
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        id = try container.decode(UUID.self, forKey: .id)
+        content = try container.decode(String.self, forKey: .content)
+        date = try container.decode(Date.self, forKey: .date)
+        type = try container.decode(ItemType.self, forKey: .type)
+        isDone = try container.decode(Bool.self, forKey: .isDone)
+        dueDate = try container.decodeIfPresent(Date.self, forKey: .dueDate)
+    }
 }
 
 class NotesViewModel: ObservableObject {
-    @Published var notes: [Note] = []
+    @Published var notes: [Note] = [] {
+        didSet {
+            saveNotes()
+        }
+    }
+    
+    private let notesKey = "notesKey"
+    
+    init() {
+        loadNotes()
+    }
     
     func addNote(content: String, type: ItemType, dueDate: Date? = nil) {
         let note = Note(content: content, date: Date(), type: type, isDone: false, dueDate: dueDate)
@@ -42,6 +75,20 @@ class NotesViewModel: ObservableObject {
     func updateDueDate(for note: Note, to newDueDate: Date?) {
         if let index = notes.firstIndex(where: { $0.id == note.id }) {
             notes[index].dueDate = newDueDate
+        }
+    }
+    
+    private func saveNotes() {
+        if let encoded = try? JSONEncoder().encode(notes) {
+            UserDefaults.standard.set(encoded, forKey: notesKey)
+        }
+    }
+    
+    private func loadNotes() {
+        if let savedNotes = UserDefaults.standard.object(forKey: notesKey) as? Data {
+            if let decodedNotes = try? JSONDecoder().decode([Note].self, from: savedNotes) {
+                notes = decodedNotes
+            }
         }
     }
 }
