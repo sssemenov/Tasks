@@ -78,6 +78,12 @@ class NotesViewModel: ObservableObject {
         }
     }
     
+    func deleteNoteById(_ id: UUID) {
+        if let index = notes.firstIndex(where: { $0.id == id }) {
+            notes.remove(at: index)
+        }
+    }
+    
     private func saveNotes() {
         if let encoded = try? JSONEncoder().encode(notes) {
             UserDefaults.standard.set(encoded, forKey: notesKey)

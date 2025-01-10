@@ -85,17 +85,25 @@ struct CreateView: View {
                     
                     Spacer()
                     
-                    Button(action: {
-                        hasDueDate = false
-                        dueDate = Date()
-                    }) {
-                        Image(systemName: "trash")
-                            .foregroundColor(.red)
+                    if existingNote != nil {
+                        Button(action: {
+                            withAnimation {
+                                dismiss()
+                            }
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                                if let note = existingNote {
+                                    viewModel.deleteNoteById(note.id)
+                                }
+                            }
+                        }) {
+                            Image(systemName: "trash")
+                                .foregroundColor(.red)
+                        }
+                        .padding(20)
+                        .background(Color.red.opacity(0.2))
+                        .cornerRadius(8)
+                        .padding(.leading, 8)
                     }
-                    .padding(20)
-                    .background(Color.red.opacity(0.2))
-                    .cornerRadius(8)
-                    .padding(.leading, 8)
                 }
                 .padding()
             }
