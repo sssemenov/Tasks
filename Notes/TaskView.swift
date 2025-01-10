@@ -89,13 +89,29 @@ struct TaskView: View {
             .sheet(isPresented: $showingEditView) {
                 CreateView(viewModel: viewModel, existingNote: note)
             }
+            .swipeActions {
+                Button(role: .destructive) {
+                    if let index = viewModel.notes.firstIndex(where: { $0.id == note.id }) {
+                        viewModel.notes.remove(at: index)
+                    }
+                } label: {
+                    Label("Delete", systemImage: "trash")
+                }
+            }
         }
     }
     
     private func formattedDueDate(_ date: Date) -> String {
-        let formatter = DateFormatter()
-        formatter.dateFormat = Calendar.current.isDate(date, equalTo: Date(), toGranularity: .year) ? "MMM d" : "MMM d, yyyy"
-        return formatter.string(from: date)
+        let calendar = Calendar.current
+        if calendar.isDateInToday(date) {
+            return "Today"
+        } else if calendar.isDateInTomorrow(date) {
+            return "Tomorrow"
+        } else {
+            let formatter = DateFormatter()
+            formatter.dateFormat = calendar.isDate(date, equalTo: Date(), toGranularity: .year) ? "MMM d" : "MMM d, yyyy"
+            return formatter.string(from: date)
+        }
     }
 }
 
@@ -103,7 +119,7 @@ struct TaskView: View {
     Group {
         // Full width preview
         ZStack {
-            Color(hex: "FFFEFA")
+            Color(hex: "ffffff")
                 .ignoresSafeArea()
             
             VStack(spacing: 16) {

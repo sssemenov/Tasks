@@ -51,10 +51,6 @@ struct ContentView: View {
     @State private var showingNoteSheet = false
     @State private var selectedNote: Note?
     
-    var notes: [Note] {
-        viewModel.notes.filter { $0.type == .note }
-    }
-    
     var tasks: [Note] {
         viewModel.notes.filter { $0.type == .task }
     }
@@ -62,7 +58,7 @@ struct ContentView: View {
     var body: some View {
         NavigationView {
             VStack(alignment: .center, spacing: 4) {
-                if notes.isEmpty && tasks.isEmpty {
+                if tasks.isEmpty {
                     Spacer()
                     Text("Nothing here, yet")
                         .foregroundColor(.secondary)
@@ -70,70 +66,26 @@ struct ContentView: View {
                     Text("Add tasks to get started.")
                         .foregroundColor(.secondary)
                         .multilineTextAlignment(.center)
-                    //Spacer()
                 } else {
                     ScrollView {
-                        VStack(alignment: .leading, spacing: 20) {
-                            if !notes.isEmpty && !tasks.isEmpty {
-                                VStack(alignment: .leading) {
-                                    Text("Notes")
-                                        .font(.subheadline)
-                                        .fontWeight(.bold)
-                                    
-                                    ScrollView(.horizontal, showsIndicators: false) {
-                                        HStack {
-                                            ForEach(notes) { note in
-                                                NoteView(content: note.content, date: note.date)
-                                                    .onTapGesture {
-                                                        selectedNote = note
-                                                    }
-                                            }
+                        LazyVStack(spacing: 0) {
+                            ForEach(tasks) { task in
+                                TaskView(content: task.content,
+                                         date: task.date,
+                                         isDone: task.isDone,
+                                         dueDate: task.dueDate,
+                                         note: task,
+                                         viewModel: viewModel)
+                                .swipeActions {
+                                    Button(role: .destructive) {
+                                        if let index = viewModel.notes.firstIndex(where: { $0.id == task.id }) {
+                                            viewModel.notes.remove(at: index)
                                         }
+                                    } label: {
+                                        Label("Delete", systemImage: "trash")
                                     }
                                 }
-                            } else if !notes.isEmpty {
-                                ScrollView(.horizontal, showsIndicators: false) {
-                                    HStack {
-                                        ForEach(notes) { note in
-                                            NoteView(content: note.content, date: note.date)
-                                                .onTapGesture {
-                                                    selectedNote = note
-                                                }
-                                        }
-                                    }
-                                }
-                            }
-                            
-                            if !notes.isEmpty && !tasks.isEmpty {
-                                VStack(alignment: .leading) {
-                                    Text("Tasks")
-                                        .font(.subheadline)
-                                        .fontWeight(.bold)
-                                    
-                                    LazyVStack(spacing: 0) {
-                                        ForEach(tasks) { task in
-                                            TaskView(content: task.content,
-                                                     date: task.date,
-                                                     isDone: task.isDone,
-                                                     dueDate: task.dueDate,
-                                                     note: task,
-                                                     viewModel: viewModel)
-                                            Divider()
-                                        }
-                                    }
-                                }
-                            } else if !tasks.isEmpty {
-                                LazyVStack(spacing: 0) {
-                                    ForEach(tasks) { task in
-                                        TaskView(content: task.content,
-                                                 date: task.date,
-                                                 isDone: task.isDone,
-                                                 dueDate: task.dueDate,
-                                                 note: task,
-                                                 viewModel: viewModel)
-                                        Divider()
-                                    }
-                                }
+                                Divider()
                             }
                         }
                     }
@@ -148,8 +100,8 @@ struct ContentView: View {
                     Button(action: {
                         // Handle search action
                     }) {
-                        Image(systemName: "magnifyingglass")
-                            .foregroundColor(.primary)
+                        //Image(systemName: "magnifyingglass")
+                            //.foregroundColor(.primary)
                     }
                 }
             }
@@ -166,7 +118,6 @@ struct ContentView: View {
                         .background(Color.primary)
                         .clipShape(Circle())
                 }
-                //.padding(.bottom, 16)
             }
             .sheet(isPresented: $showingNoteSheet) {
                 CreateView(viewModel: viewModel, existingNote: selectedNote)

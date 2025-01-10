@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import UserNotifications
 
 struct CreateView: View {
     @Environment(\.dismiss) private var dismiss
@@ -46,12 +47,25 @@ struct CreateView: View {
                     }) {
                         HStack {
                             Image(systemName: hasDueDate ? "flag.fill" : "flag")
-                            Text(hasDueDate ? "\(formattedDueDate(dueDate))" : "Due date")
+                            Text(hasDueDate ? "\(formattedDueDate(dueDate))" : "Deadline")
                         }
                         .padding()
                         .background(Color(UIColor.secondarySystemBackground))
                         .foregroundColor(.primary)
                         .cornerRadius(8)
+                    }
+                    
+                    Button(action: {
+                        scheduleNotification()
+                    }) {
+//                        HStack {
+//                            Image(systemName: "bell")
+//                            Text("Reminder")
+//                        }
+//                        .padding()
+//                        .background(Color(UIColor.secondarySystemBackground))
+//                        .foregroundColor(.primary)
+//                        .cornerRadius(8)
                     }
                     
                     if hasDueDate {
@@ -64,7 +78,8 @@ struct CreateView: View {
                         }
                         .padding(20)
                         .background(Color(UIColor.secondarySystemBackground))
-                        .cornerRadius(999)
+                        .cornerRadius(8)
+                        .padding(.leading, 8)
                     }
                     
                     Spacer()
@@ -79,7 +94,6 @@ struct CreateView: View {
                     isContentFocused = true
                 }
             }
-            //.navigationTitle(existingNote == nil ? "New Task" : "Edit")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
@@ -87,7 +101,6 @@ struct CreateView: View {
                         dismiss()
                     }
                     .foregroundColor(.secondary)
-
                 }
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button("Save") {
@@ -116,23 +129,21 @@ struct CreateView: View {
                 VStack {
                     DatePicker("Select Due Date", selection: $dueDate, displayedComponents: .date)
                         .datePickerStyle(.graphical)
-                        .padding()
-                    
-                    HStack {
-                        Button("Done") {
+                        .onChange(of: dueDate) { newDate in
                             hasDueDate = true
                             showingDatePicker = false
                         }
                         .padding()
-                        
-                        Spacer()
-                        
-                        Button("Remove Due Date") {
-                            hasDueDate = false
-                            showingDatePicker = false
+                    
+                    if hasDueDate {
+                        HStack {
+                            Button("Clear deadline") {
+                                hasDueDate = false
+                                dueDate = Date()
+                                showingDatePicker = false
+                            }
+                            .foregroundColor(.red)
                         }
-                        .foregroundColor(.red)
-                        .padding()
                     }
                 }
                 .presentationDetents([.medium])
@@ -140,10 +151,35 @@ struct CreateView: View {
         }
     }
     
+    private func scheduleNotification() {
+        let content = UNMutableNotificationContent()
+        content.title = "Reminder"
+        content.body = self.content
+        content.sound = .default
+        
+        let triggerDate = Calendar.current.dateComponents([.year, .month, .day, .hour, .minute], from: dueDate)
+        let trigger = UNCalendarNotificationTrigger(dateMatching: triggerDate, repeats: false)
+        
+        let request = UNNotificationRequest(identifier: UUID().uuidString, content: content, trigger: trigger)
+        
+        UNUserNotificationCenter.current().add(request) { error in
+            if let error = error {
+                print("Error scheduling notification: \(error.localizedDescription)")
+            }
+        }
+    }
+    
     private func formattedDueDate(_ date: Date) -> String {
-        let formatter = DateFormatter()
-        formatter.dateFormat = Calendar.current.isDate(date, equalTo: Date(), toGranularity: .year) ? "MMM d" : "MMM d, yyyy"
-        return formatter.string(from: date)
+        let calendar = Calendar.current
+        if calendar.isDateInToday(date) {
+            return "Today"
+        } else if calendar.isDateInTomorrow(date) {
+            return "Tomorrow"
+        } else {
+            let formatter = DateFormatter()
+            formatter.dateFormat = calendar.isDate(date, equalTo: Date(), toGranularity: .year) ? "MMM d" : "MMM d, yyyy"
+            return formatter.string(from: date)
+        }
     }
 }
 
