@@ -103,6 +103,9 @@ struct ContentView: View {
     @StateObject private var viewModel = NotesViewModel()
     @State private var showingNoteSheet = false
     @State private var selectedNote: Note?
+    @State private var dueDate: Date = Date()
+    @State private var hasDueDate: Bool = false
+    @State private var showingDatePicker: Bool = false
     
     var tasks: [Note] {
         viewModel.notes.filter { $0.type == .task }
@@ -146,7 +149,7 @@ struct ContentView: View {
                 
                 Spacer()
             }
-            .padding()
+            .padding(.horizontal, 16)
             .navigationTitle("Journal")
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
@@ -177,6 +180,9 @@ struct ContentView: View {
             }
             .sheet(item: $selectedNote) { note in
                 CreateView(viewModel: viewModel, existingNote: note)
+            }
+            .sheet(isPresented: $showingDatePicker) {
+                DueDatePickerView(dueDate: $dueDate, hasDueDate: $hasDueDate, showingDatePicker: $showingDatePicker)
             }
         }
         .ignoresSafeArea()

@@ -11,94 +11,104 @@ struct TaskView: View {
     @State private var selectedDueDate: Date?
     @State private var showingEditView = false
 
+    init(content: String, date: Date, isDone: Bool, dueDate: Date?, note: Note, viewModel: NotesViewModel) {
+        self.content = content
+        self.date = date
+        self.isDone = isDone
+        self.dueDate = dueDate
+        self.note = note
+        _viewModel = StateObject(wrappedValue: viewModel)
+        _selectedDueDate = State(initialValue: dueDate)
+    }
+
     var body: some View {
-        VStack {
-            HStack(alignment: .center, spacing: 12) {
-                // Checkbox
-                Image(systemName: isDone ? "checkmark.square.fill" : "square")
-                    .foregroundColor(isDone ? .gray : .primary)
-                    .font(.system(size: 24))
-                    .onTapGesture {
-                        viewModel.toggleTaskDone(note: note)
-                    }
-                
-                HStack(alignment: .center, spacing: 4) {
-                    Text(content)
-                        .strikethrough(isDone)
-                        .foregroundColor(isDone ? .secondary : .primary)
-                        .lineLimit(1)
-                        .truncationMode(.tail)
-                    
-                    Spacer()
-                    
-                    if let dueDate = dueDate {
-                        Button(action: {
-                            showingDatePicker.toggle()
-                            selectedDueDate = dueDate
-                        }) {
-                            HStack(spacing: 4) {
-                                Image(systemName: "flag")
-                                    .font(.caption)
-                                Text(formattedDueDate(dueDate))
-                                    .font(.caption)
-                            }
-                            .padding(.horizontal, 8)
-                            .padding(.vertical, 6)
-                            .background(isDone ? Color.gray.opacity(0.2) : (dueDate < Date() ? Color.red.opacity(0.2) : Color.primary.opacity(0.1)))
-                            .cornerRadius(6)
-                            .foregroundColor(isDone ? .secondary : (dueDate < Date() ? .red : .primary))
-                        }
-                        .sheet(isPresented: $showingDatePicker) {
-                            VStack {
-                                DatePicker("Select Due Date", selection: Binding(
-                                    get: { selectedDueDate ?? Date() },
-                                    set: { selectedDueDate = $0 }
-                                ), displayedComponents: .date)
-                                .datePickerStyle(.graphical)
-                                .padding()
-                                
-                                HStack {
-                                    Button("Done") {
-                                        if let newDueDate = selectedDueDate {
-                                            viewModel.updateDueDate(for: note, to: newDueDate)
-                                        }
-                                        showingDatePicker = false
-                                    }
-                                    .padding()
-                                    
-                                    Spacer()
-                                    
-                                    Button("Remove Due Date") {
-                                        viewModel.updateDueDate(for: note, to: nil)
-                                        showingDatePicker = false
-                                    }
-                                    .foregroundColor(.red)
-                                    .padding()
-                                }
-                            }
-                            .presentationDetents([.medium])
-                        }
-                    }
-                }
-            }
-            .padding(.vertical, 16)
-            .contentShape(Rectangle()) // Make the entire HStack tappable
+        TaskRow(content: content, isDone: isDone, dueDate: dueDate, note: note, viewModel: viewModel, selectedDueDate: $selectedDueDate, showingDatePicker: $showingDatePicker)
             .onTapGesture {
                 showingEditView = true
             }
             .sheet(isPresented: $showingEditView) {
                 CreateView(viewModel: viewModel, existingNote: note)
             }
-            .swipeActions {
-                Button(role: .destructive) {
-                    if let index = viewModel.notes.firstIndex(where: { $0.id == note.id }) {
-                        viewModel.notes.remove(at: index)
+            .sheet(isPresented: $showingDatePicker) {
+                VStack {
+                    DatePicker("Select Due Date", selection: Binding(
+                        get: { selectedDueDate ?? Date() },
+                        set: { selectedDueDate = $0 }
+                    ), displayedComponents: .date)
+                        .datePickerStyle(.graphical)
+                        .onChange(of: selectedDueDate) { oldDate, newDate in
+                            if let newDate = newDate {
+                                viewModel.updateDueDate(for: note, to: newDate)
+                            }
+                            showingDatePicker = false
+                        }
+                        .padding()
+                    
+                    if selectedDueDate != nil {
+                        HStack {
+                            Button("Clear deadline") {
+                                viewModel.updateDueDate(for: note, to: nil)
+                                selectedDueDate = nil
+                                showingDatePicker = false
+                            }
+                            .foregroundColor(.red)
+                        }
                     }
-                } label: {
-                    Label("Delete", systemImage: "trash")
+                }
+                .presentationDetents([.medium])
+            }
+    }
+}
+
+struct TaskRow: View {
+    let content: String
+    let isDone: Bool
+    let dueDate: Date?
+    let note: Note
+    @ObservedObject var viewModel: NotesViewModel
+    @Binding var selectedDueDate: Date?
+    @Binding var showingDatePicker: Bool
+
+    var body: some View {
+        HStack(alignment: .center, spacing: 8) {
+            // Checkbox
+            Image(systemName: isDone ? "checkmark.square.fill" : "square")
+                .foregroundColor(isDone ? .gray : .primary)
+                .font(.system(size: 24))
+                .onTapGesture {
+                    viewModel.toggleTaskDone(note: note)
+                }
+            
+            HStack(alignment: .center, spacing: 4) {
+                Text(content)
+                    .strikethrough(isDone)
+                    .foregroundColor(isDone ? .secondary : .primary)
+                    .lineLimit(1)
+                    .truncationMode(.tail)
+                
+                Spacer()
+                
+                if let dueDate = dueDate {
+                    HStack(spacing: 4) {
+                        Image(systemName: "flag")
+                            .font(.caption)
+                        Text(formattedDueDate(dueDate))
+                            .font(.caption)
+                    }
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 6)
+                    .background(isDone ? Color.gray.opacity(0.1) : (dueDate < Date() ? Color.red.opacity(0.1) : Color.gray.opacity(0.1)))
+                    .cornerRadius(6)
+                    .foregroundColor(isDone ? .secondary : (dueDate < Date() ? .red : .primary))
+                    .onTapGesture {
+                        selectedDueDate = dueDate
+                        showingDatePicker = true
+                    }
                 }
             }
         }
+        .padding(.vertical, 16)
+        .contentShape(Rectangle()) // Make the entire HStack tappable
     }
     
     private func formattedDueDate(_ date: Date) -> String {

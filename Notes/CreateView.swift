@@ -33,86 +33,91 @@ struct CreateView: View {
     
     var body: some View {
         NavigationView {
-            VStack(spacing: 0) {
-                TextField("New Task", text: $content, axis: .vertical)
-                    .font(.body)
-                    .padding()
-                    .focused($isContentFocused)
-                
-                Spacer()
-                
-                HStack {
-                    Button(action: {
-                        showingDatePicker.toggle()
-                    }) {
-                        HStack {
-                            Image(systemName: hasDueDate ? "flag.fill" : "flag")
-                            Text(hasDueDate ? "\(formattedDueDate(dueDate))" : "Deadline")
-                        }
+            ZStack {
+                VStack(spacing: 0) {
+                    TextField("New Task", text: $content, axis: .vertical)
+                        .font(.title2)
                         .padding()
-                        .background(Color(UIColor.secondarySystemBackground))
-                        .foregroundColor(.primary)
-                        .cornerRadius(8)
-                    }
-                    
-                    Button(action: {
-                        scheduleNotification()
-                    }) {
-//                        HStack {
-//                            Image(systemName: "bell")
-//                            Text("Reminder")
-//                        }
-//                        .padding()
-//                        .background(Color(UIColor.secondarySystemBackground))
-//                        .foregroundColor(.primary)
-//                        .cornerRadius(8)
-                    }
-                    
-                    
-                    if hasDueDate {
-                        Button(action: {
-                            hasDueDate = false
-                            dueDate = Date()
-                        }) {
-                            Image(systemName: "multiply")
-                                .foregroundColor(.primary)
-                        }
-                        .padding(20)
-                        .background(Color(UIColor.secondarySystemBackground))
-                        .cornerRadius(8)
-                        .padding(.leading, 8)
-                    }
+                        .focused($isContentFocused)
                     
                     Spacer()
-                    
-                    if existingNote != nil {
-                        Button(action: {
-                            withAnimation {
-                                dismiss()
-                            }
-                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-                                if let note = existingNote {
-                                    viewModel.deleteNoteById(note.id)
-                                }
-                            }
-                        }) {
-                            Image(systemName: "trash")
-                                .foregroundColor(.red)
-                        }
-                        .padding(20)
-                        .background(Color.red.opacity(0.2))
-                        .cornerRadius(8)
-                        .padding(.leading, 8)
+                }
+                .onTapGesture {
+                    isContentFocused = true
+                }
+                .onAppear {
+                    if existingNote == nil {
+                        isContentFocused = true
                     }
                 }
-                .padding()
-            }
-            .onTapGesture {
-                isContentFocused = true
-            }
-            .onAppear {
-                if existingNote == nil {
-                    isContentFocused = true
+                
+                VStack {
+                    Spacer()
+                    
+                    HStack {
+                        Button(action: {
+                            showingDatePicker.toggle()
+                        }) {
+                            HStack {
+                                Image(systemName: hasDueDate ? "flag.fill" : "flag")
+                                Text(hasDueDate ? "\(formattedDueDate(dueDate))" : "Deadline")
+                            }
+                            .padding()
+                            .background(Color(UIColor.secondarySystemBackground))
+                            .foregroundColor(.primary)
+                            .cornerRadius(8)
+                        }
+                        
+                        Button(action: {
+                            scheduleNotification()
+                        }) {
+//                            HStack {
+//                                Image(systemName: "bell")
+//                                Text("Reminder")
+//                            }
+//                            .padding()
+//                            .background(Color(UIColor.secondarySystemBackground))
+//                            .foregroundColor(.primary)
+//                            .cornerRadius(8)
+                        }
+                        
+                        if hasDueDate {
+                            Button(action: {
+                                hasDueDate = false
+                                dueDate = Date()
+                            }) {
+                                Image(systemName: "multiply")
+                                    .foregroundColor(.primary)
+                            }
+                            .padding(20)
+                            .background(Color(UIColor.secondarySystemBackground))
+                            .cornerRadius(8)
+                            .padding(.leading, 8)
+                        }
+                        
+                        Spacer()
+                        
+                        if existingNote != nil {
+                            Button(action: {
+                                withAnimation {
+                                    dismiss()
+                                }
+                                DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                                    if let note = existingNote {
+                                        viewModel.deleteNoteById(note.id)
+                                    }
+                                }
+                            }) {
+                                Image(systemName: "trash")
+                                    .foregroundColor(.red)
+                            }
+                            .padding(20)
+                            .background(Color.red.opacity(0.2))
+                            .cornerRadius(8)
+                            .padding(.leading, 8)
+                        }
+                    }
+                    .padding()
                 }
             }
             .navigationBarTitleDisplayMode(.inline)
@@ -147,27 +152,7 @@ struct CreateView: View {
                 }
             }
             .sheet(isPresented: $showingDatePicker) {
-                VStack {
-                    DatePicker("Select Due Date", selection: $dueDate, displayedComponents: .date)
-                        .datePickerStyle(.graphical)
-                        .onChange(of: dueDate) {
-                            hasDueDate = true
-                            showingDatePicker = false
-                        }
-                        .padding()
-                    
-                    if hasDueDate {
-                        HStack {
-                            Button("Clear deadline") {
-                                hasDueDate = false
-                                dueDate = Date()
-                                showingDatePicker = false
-                            }
-                            .foregroundColor(.red)
-                        }
-                    }
-                }
-                .presentationDetents([.medium])
+                DueDatePickerView(dueDate: $dueDate, hasDueDate: $hasDueDate, showingDatePicker: $showingDatePicker)
             }
         }
     }
