@@ -43,7 +43,7 @@ struct TaskView: View {
                 
                 Spacer()
                 
-                if let dueDate = selectedDueDate {
+                if let dueDate = dueDate {
                     HStack(spacing: 4) {
                         Image(systemName: "flag")
                             .font(.caption)
