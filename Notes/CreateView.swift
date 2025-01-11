@@ -37,7 +37,7 @@ struct CreateView: View {
                 VStack(spacing: 0) {
                     TextField("New Task", text: $content, axis: .vertical)
                         .font(.title2)
-                        .padding()
+                        .padding(.horizontal, 16)
                         .focused($isContentFocused)
                     
                     Spacer()
@@ -76,8 +76,7 @@ struct CreateView: View {
                         
                         if hasDueDate {
                             Button(action: {
-                                hasDueDate = false
-                                dueDate = nil
+                                clearDueDate()
                             }) {
                                 Image(systemName: "multiply")
                                     .foregroundColor(.primary)
@@ -104,7 +103,7 @@ struct CreateView: View {
                                 Image(systemName: "trash")
                                     .foregroundColor(.red)
                             }
-                            .padding(20)
+                            .padding(16)
                             .background(Color.red.opacity(0.2))
                             .cornerRadius(8)
                             .padding(.leading, 8)
@@ -115,39 +114,49 @@ struct CreateView: View {
             }
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
-                ToolbarItem(placement: .navigationBarLeading) {
-                    Button("Cancel") {
-                        dismiss()
+                ToolbarItem(placement: .principal) {
+                    VStack {
+                        Rectangle()
+                            .fill(Color.gray.opacity(0.5))
+                            .frame(width: 40, height: 4)
+                            .cornerRadius(2)
+                        Spacer()
                     }
-                    .foregroundColor(.secondary)
                 }
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    Button("Save") {
-                        if !content.isEmpty {
-                            if existingNote == nil {
-                                viewModel.addNote(
-                                    content: content,
-                                    type: .task,
-                                    dueDate: hasDueDate ? dueDate : nil
-                                )
-                            } else if let note = existingNote {
-                                viewModel.updateNote(
-                                    note: note,
-                                    newContent: content,
-                                    newDueDate: hasDueDate ? dueDate : nil
-                                )
+                
+                if existingNote == nil || isContentFocused {
+                    ToolbarItem(placement: .navigationBarTrailing) {
+                        Button("Save") {
+                            if !content.isEmpty {
+                                if existingNote == nil {
+                                    viewModel.addNote(
+                                        content: content,
+                                        type: .task,
+                                        dueDate: hasDueDate ? dueDate : nil
+                                    )
+                                    dismiss()
+                                } else if let note = existingNote {
+                                    viewModel.updateNote(
+                                        note: note,
+                                        newContent: content,
+                                        newDueDate: hasDueDate ? dueDate : nil
+                                    )
+                                }
+                                isContentFocused = false
                             }
-                            dismiss()
                         }
+                        .disabled(content.isEmpty)
+                        .foregroundColor(content.isEmpty ? Color(UIColor.systemBackground) : .primary)
                     }
-                    .disabled(content.isEmpty)
-                    .foregroundColor(content.isEmpty ? Color(UIColor.systemGray5) : .primary)
                 }
             }
             .sheet(isPresented: $showingDatePicker) {
-                DueDatePicker(selectedDate: $dueDate, isPresented: $showingDatePicker)
+                DueDatePicker(selectedDate: $dueDate, isPresented: $showingDatePicker, onClear: clearDueDate)
                     .onDisappear {
                         hasDueDate = dueDate != nil
+                        if let note = existingNote {
+                            viewModel.updateDueDate(for: note, to: dueDate)
+                        }
                     }
             }
         }
@@ -184,6 +193,14 @@ struct CreateView: View {
             let formatter = DateFormatter()
             formatter.dateFormat = calendar.isDate(date, equalTo: Date(), toGranularity: .year) ? "MMM d" : "MMM d, yyyy"
             return formatter.string(from: date)
+        }
+    }
+    
+    private func clearDueDate() {
+        dueDate = nil
+        hasDueDate = false
+        if let note = existingNote {
+            viewModel.updateDueDate(for: note, to: nil)
         }
     }
 }

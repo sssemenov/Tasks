@@ -3,6 +3,7 @@ import SwiftUI
 struct DueDatePicker: View {
     @Binding var selectedDate: Date?
     @Binding var isPresented: Bool
+    var onClear: (() -> Void)?
 
     var body: some View {
         VStack {
@@ -11,7 +12,7 @@ struct DueDatePicker: View {
                 set: { selectedDate = $0 }
             ), displayedComponents: .date)
             .datePickerStyle(.graphical)
-            .onChange(of: selectedDate) { _ in
+            .onChange(of: selectedDate) {
                 isPresented = false
             }
             .padding()
@@ -20,6 +21,7 @@ struct DueDatePicker: View {
                 Button("Clear deadline") {
                     selectedDate = nil
                     isPresented = false
+                    onClear?()
                 }
                 .foregroundColor(.red)
             }
