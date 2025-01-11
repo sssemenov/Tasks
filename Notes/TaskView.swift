@@ -9,7 +9,7 @@ struct TaskView: View {
     @StateObject var viewModel: NotesViewModel
     @State private var showingDatePicker = false
     @State private var selectedDueDate: Date?
-    @State private var showingEditView = false
+    @State private var showingCreateView = false
 
     init(content: String, date: Date, isDone: Bool, dueDate: Date?, note: Note, viewModel: NotesViewModel) {
         self.content = content
@@ -20,54 +20,6 @@ struct TaskView: View {
         _viewModel = StateObject(wrappedValue: viewModel)
         _selectedDueDate = State(initialValue: dueDate)
     }
-
-    var body: some View {
-        TaskRow(content: content, isDone: isDone, dueDate: dueDate, note: note, viewModel: viewModel, selectedDueDate: $selectedDueDate, showingDatePicker: $showingDatePicker)
-            .onTapGesture {
-                showingEditView = true
-            }
-            .sheet(isPresented: $showingEditView) {
-                CreateView(viewModel: viewModel, existingNote: note)
-            }
-            .sheet(isPresented: $showingDatePicker) {
-                VStack {
-                    DatePicker("Select Due Date", selection: Binding(
-                        get: { selectedDueDate ?? Date() },
-                        set: { selectedDueDate = $0 }
-                    ), displayedComponents: .date)
-                        .datePickerStyle(.graphical)
-                        .onChange(of: selectedDueDate) { oldDate, newDate in
-                            if let newDate = newDate {
-                                viewModel.updateDueDate(for: note, to: newDate)
-                            }
-                            showingDatePicker = false
-                        }
-                        .padding()
-                    
-                    if selectedDueDate != nil {
-                        HStack {
-                            Button("Clear deadline") {
-                                viewModel.updateDueDate(for: note, to: nil)
-                                selectedDueDate = nil
-                                showingDatePicker = false
-                            }
-                            .foregroundColor(.red)
-                        }
-                    }
-                }
-                .presentationDetents([.medium])
-            }
-    }
-}
-
-struct TaskRow: View {
-    let content: String
-    let isDone: Bool
-    let dueDate: Date?
-    let note: Note
-    @ObservedObject var viewModel: NotesViewModel
-    @Binding var selectedDueDate: Date?
-    @Binding var showingDatePicker: Bool
 
     var body: some View {
         HStack(alignment: .center, spacing: 8) {
@@ -85,10 +37,13 @@ struct TaskRow: View {
                     .foregroundColor(isDone ? .secondary : .primary)
                     .lineLimit(1)
                     .truncationMode(.tail)
+                    .onTapGesture {
+                        showingCreateView = true
+                    }
                 
                 Spacer()
                 
-                if let dueDate = dueDate {
+                if let dueDate = selectedDueDate {
                     HStack(spacing: 4) {
                         Image(systemName: "flag")
                             .font(.caption)
@@ -109,6 +64,17 @@ struct TaskRow: View {
         }
         .padding(.vertical, 16)
         .contentShape(Rectangle()) // Make the entire HStack tappable
+        .sheet(isPresented: $showingDatePicker) {
+            DueDatePicker(selectedDate: $selectedDueDate, isPresented: $showingDatePicker)
+                .onDisappear {
+                    if let newDate = selectedDueDate {
+                        viewModel.updateDueDate(for: note, to: newDate)
+                    }
+                }
+        }
+        .sheet(isPresented: $showingCreateView) {
+            CreateView(viewModel: viewModel, existingNote: note)
+        }
     }
     
     private func formattedDueDate(_ date: Date) -> String {

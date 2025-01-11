@@ -1,29 +1,27 @@
 import SwiftUI
 
-struct DueDatePickerView: View {
-    @Binding var dueDate: Date
-    @Binding var hasDueDate: Bool
-    @Binding var showingDatePicker: Bool
+struct DueDatePicker: View {
+    @Binding var selectedDate: Date?
+    @Binding var isPresented: Bool
 
     var body: some View {
         VStack {
-            DatePicker("Select Due Date", selection: $dueDate, displayedComponents: .date)
-                .datePickerStyle(.graphical)
-                .onChange(of: dueDate) {
-                    hasDueDate = true
-                    showingDatePicker = false
+            DatePicker("Select Due Date", selection: Binding(
+                get: { selectedDate ?? Date() },
+                set: { selectedDate = $0 }
+            ), displayedComponents: .date)
+            .datePickerStyle(.graphical)
+            .onChange(of: selectedDate) { _ in
+                isPresented = false
+            }
+            .padding()
+
+            if selectedDate != nil {
+                Button("Clear deadline") {
+                    selectedDate = nil
+                    isPresented = false
                 }
-                .padding()
-            
-            if hasDueDate {
-                HStack {
-                    Button("Clear deadline") {
-                        hasDueDate = false
-                        dueDate = Date()
-                        showingDatePicker = false
-                    }
-                    .foregroundColor(.red)
-                }
+                .foregroundColor(.red)
             }
         }
         .presentationDetents([.medium])

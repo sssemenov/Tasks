@@ -103,7 +103,7 @@ struct ContentView: View {
     @StateObject private var viewModel = NotesViewModel()
     @State private var showingNoteSheet = false
     @State private var selectedNote: Note?
-    @State private var dueDate: Date = Date()
+    @State private var dueDate: Date? = nil
     @State private var hasDueDate: Bool = false
     @State private var showingDatePicker: Bool = false
     
@@ -182,7 +182,7 @@ struct ContentView: View {
                 CreateView(viewModel: viewModel, existingNote: note)
             }
             .sheet(isPresented: $showingDatePicker) {
-                DueDatePickerView(dueDate: $dueDate, hasDueDate: $hasDueDate, showingDatePicker: $showingDatePicker)
+                DueDatePicker(selectedDate: $dueDate, isPresented: $showingDatePicker)
             }
         }
         .ignoresSafeArea()

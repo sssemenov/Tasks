@@ -12,7 +12,7 @@ struct CreateView: View {
     @Environment(\.dismiss) private var dismiss
     @ObservedObject var viewModel: NotesViewModel
     @State private var content: String
-    @State private var dueDate: Date
+    @State private var dueDate: Date?
     @State private var hasDueDate: Bool
     let existingNote: Note?
     @FocusState private var isContentFocused: Bool
@@ -26,7 +26,7 @@ struct CreateView: View {
             _dueDate = State(initialValue: existingDueDate)
             _hasDueDate = State(initialValue: true)
         } else {
-            _dueDate = State(initialValue: Date())
+            _dueDate = State(initialValue: nil)
             _hasDueDate = State(initialValue: false)
         }
     }
@@ -71,20 +71,13 @@ struct CreateView: View {
                         Button(action: {
                             scheduleNotification()
                         }) {
-//                            HStack {
-//                                Image(systemName: "bell")
-//                                Text("Reminder")
-//                            }
-//                            .padding()
-//                            .background(Color(UIColor.secondarySystemBackground))
-//                            .foregroundColor(.primary)
-//                            .cornerRadius(8)
+                            // Notification button code
                         }
                         
                         if hasDueDate {
                             Button(action: {
                                 hasDueDate = false
-                                dueDate = Date()
+                                dueDate = nil
                             }) {
                                 Image(systemName: "multiply")
                                     .foregroundColor(.primary)
@@ -152,7 +145,10 @@ struct CreateView: View {
                 }
             }
             .sheet(isPresented: $showingDatePicker) {
-                DueDatePickerView(dueDate: $dueDate, hasDueDate: $hasDueDate, showingDatePicker: $showingDatePicker)
+                DueDatePicker(selectedDate: $dueDate, isPresented: $showingDatePicker)
+                    .onDisappear {
+                        hasDueDate = dueDate != nil
+                    }
             }
         }
     }
@@ -163,19 +159,22 @@ struct CreateView: View {
         content.body = self.content
         content.sound = .default
         
-        let triggerDate = Calendar.current.dateComponents([.year, .month, .day, .hour, .minute], from: dueDate)
-        let trigger = UNCalendarNotificationTrigger(dateMatching: triggerDate, repeats: false)
-        
-        let request = UNNotificationRequest(identifier: UUID().uuidString, content: content, trigger: trigger)
-        
-        UNUserNotificationCenter.current().add(request) { error in
-            if let error = error {
-                print("Error scheduling notification: \(error.localizedDescription)")
+        if let dueDate = dueDate {
+            let triggerDate = Calendar.current.dateComponents([.year, .month, .day, .hour, .minute], from: dueDate)
+            let trigger = UNCalendarNotificationTrigger(dateMatching: triggerDate, repeats: false)
+            
+            let request = UNNotificationRequest(identifier: UUID().uuidString, content: content, trigger: trigger)
+            
+            UNUserNotificationCenter.current().add(request) { error in
+                if let error = error {
+                    print("Error scheduling notification: \(error.localizedDescription)")
+                }
             }
         }
     }
     
-    private func formattedDueDate(_ date: Date) -> String {
+    private func formattedDueDate(_ date: Date?) -> String {
+        guard let date = date else { return "No Date" }
         let calendar = Calendar.current
         if calendar.isDateInToday(date) {
             return "Today"
