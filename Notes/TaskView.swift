@@ -52,7 +52,7 @@ struct TaskView: View {
                     }
                     .padding(.horizontal, 8)
                     .padding(.vertical, 6)
-                    .background(isDone ? Color.gray.opacity(0.1) : (dueDate < Date() ? Color.red.opacity(0.1) : Color.gray.opacity(0.1)))
+                    .background(isDone ? Color(uiColor: .secondarySystemBackground) : (dueDate < Date() ? Color.red.opacity(0.1) : Color(uiColor: .secondarySystemBackground)))
                     .cornerRadius(6)
                     .foregroundColor(isDone ? .secondary : (dueDate < Date() ? .red : .primary))
                     .onTapGesture {
