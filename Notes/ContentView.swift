@@ -158,17 +158,23 @@ struct ContentView: View {
                         }
                     }
                 }
-                .overlay(alignment: .bottom) {
-                    Button(action: {
-                        showingNewEntryView = true
-                    }) {
-                        Image(systemName: "plus")
-                            .font(.title2)
-                            .fontWeight(.semibold)
-                            .foregroundColor(Color(UIColor.systemGray6))
-                            .frame(width: 56, height: 56)
-                            .background(Color.primary)
-                            .clipShape(Circle())
+                
+                GeometryReader { geometry in
+                    VStack {
+                        Spacer()
+                        Button(action: {
+                            showingNewEntryView = true
+                        }) {
+                            Image(systemName: "plus")
+                                .font(.title2)
+                                .fontWeight(.semibold)
+                                .foregroundColor(Color(UIColor.systemGray6))
+                                .frame(width: 56, height: 56)
+                                .background(Color.primary)
+                                .clipShape(Circle())
+                        }
+                        //.padding(.bottom, 16)
+                        .position(x: geometry.size.width / 2, y: geometry.size.height - 56)
                     }
                 }
 
@@ -179,7 +185,7 @@ struct ContentView: View {
                             showingNewEntryView = false
                         }
 
-                    NewEntryView()
+                    NewEntryView(viewModel: viewModel, isPresented: $showingNewEntryView)
                         .transition(.move(edge: .bottom))
                 }
             }
