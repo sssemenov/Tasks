@@ -17,18 +17,17 @@ struct NewEntryView: View {
     @Binding var isPresented: Bool
     @State private var dueDate: Date? = nil
     @State private var hasDueDate: Bool = false
+    @State private var dragOffset: CGSize = .zero
 
     var body: some View {
         VStack {
-            
             Spacer()
             
-            VStack(spacing: 24) {
-                
-                Rectangle()
-                    .fill(Color(UIColor.systemFill))
-                    .frame(width: 40, height: 4)
-                    .cornerRadius(2)
+            VStack {
+//                Rectangle()
+//                    .fill(Color(UIColor.systemFill))
+//                    .frame(width: 40, height: 4)
+//                    .cornerRadius(2)
 
                 VStack(alignment: .leading, spacing: 56) {
                     TextField("New entry", text: $content)
@@ -86,19 +85,20 @@ struct NewEntryView: View {
                     .padding(.horizontal, 16)
                 }
             }
-            .padding(.top, 10)
+            .padding(.top, 24)
             .padding(.bottom, 16)
-            .background(Color(UIColor.systemBackground))
+            .background(Color(UIColor.tertiarySystemBackground))
             .clipShape(RoundedCornersShape(corners: [.topLeft, .topRight], radius: 20))
             .onAppear {
-                withAnimation(.easeIn(duration: 0.1)) {
+                isContentFocused = true
+                withAnimation(.easeIn(duration: 0.2)) {
                     viewOpacity = 1.0
                 }
-                isContentFocused = true
             }
+
         }
+        //.background(Color(UIColor.red))
         .opacity(viewOpacity)
-        //.background(Color(UIColor.systemGray5)) //dim overaly for preview
         .sheet(isPresented: $showingDatePicker) {
             DueDatePicker(selectedDate: $dueDate, isPresented: $showingDatePicker, onClear: clearDueDate)
                 .onDisappear {

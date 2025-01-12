@@ -26,7 +26,7 @@ struct TaskView: View {
             // Checkbox
             Image(systemName: isDone ? "checkmark.square.fill" : "square")
                 .foregroundColor(isDone ? .gray : .primary)
-                .font(.system(size: 24))
+                .font(.system(size: 20))
                 .onTapGesture {
                     viewModel.toggleTaskDone(note: note)
                 }

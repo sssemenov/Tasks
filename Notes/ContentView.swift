@@ -102,6 +102,7 @@ class NotesViewModel: ObservableObject {
 struct ContentView: View {
     @StateObject private var viewModel = NotesViewModel()
     @State private var showingNewEntryView = false
+    @State private var backgroundOpacity: Double = 0.0
 
     var tasks: [Note] {
         viewModel.notes.filter { $0.type == .task }
@@ -159,34 +160,47 @@ struct ContentView: View {
                     }
                 }
                 
-                GeometryReader { geometry in
-                    VStack {
-                        Spacer()
-                        Button(action: {
-                            showingNewEntryView = true
-                        }) {
-                            Image(systemName: "plus")
-                                .font(.title2)
-                                .fontWeight(.semibold)
-                                .foregroundColor(Color(UIColor.systemGray6))
-                                .frame(width: 56, height: 56)
-                                .background(Color.primary)
-                                .clipShape(Circle())
-                        }
-                        //.padding(.bottom, 16)
-                        .position(x: geometry.size.width / 2, y: geometry.size.height - 56)
+                VStack {
+                    Spacer()
+                    Button(action: {
+                        let impactFeedback = UIImpactFeedbackGenerator(style: .medium)
+                        impactFeedback.impactOccurred()
+                        showingNewEntryView = true
+                    }) {
+                        Image(systemName: "plus")
+                            .font(.title2)
+                            .fontWeight(.semibold)
+                            .foregroundColor(Color(UIColor.systemGray6))
+                            .frame(width: 56, height: 56)
+                            .background(Color.primary)
+                            .clipShape(Circle())
                     }
+                    .padding(.bottom, 16)
                 }
+                .ignoresSafeArea(.keyboard, edges: .bottom)
+                .padding(.bottom, 16)
 
                 if showingNewEntryView {
-                    Color.black.opacity(0.4)
+                    Color.black.opacity(backgroundOpacity)
                         .ignoresSafeArea()
                         .onTapGesture {
+                            withAnimation {
+                                backgroundOpacity = 0.0
+                            }
                             showingNewEntryView = false
                         }
 
                     NewEntryView(viewModel: viewModel, isPresented: $showingNewEntryView)
-                        .transition(.move(edge: .bottom))
+                        .onAppear {
+                            withAnimation {
+                                backgroundOpacity = 0.5
+                            }
+                        }
+                        .onDisappear {
+                            withAnimation {
+                                backgroundOpacity = 0.0
+                            }
+                        }
                 }
             }
         }
