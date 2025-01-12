@@ -101,88 +101,87 @@ class NotesViewModel: ObservableObject {
 
 struct ContentView: View {
     @StateObject private var viewModel = NotesViewModel()
-    @State private var showingNoteSheet = false
-    @State private var selectedNote: Note?
-    @State private var dueDate: Date? = nil
-    @State private var hasDueDate: Bool = false
-    @State private var showingDatePicker: Bool = false
-    
+    @State private var showingNewEntryView = false
+
     var tasks: [Note] {
         viewModel.notes.filter { $0.type == .task }
     }
-    
+
     var body: some View {
         NavigationView {
-            VStack(alignment: .center, spacing: 4) {
-                if tasks.isEmpty {
-                    Spacer()
-                    Text("Nothing here, yet")
-                        .foregroundColor(.secondary)
-                        .fontWeight(.medium)
-                    Text("Add tasks to get started.")
-                        .foregroundColor(.secondary)
-                        .multilineTextAlignment(.center)
-                } else {
-                    ScrollView {
-                        LazyVStack(spacing: 0) {
-                            ForEach(tasks) { task in
-                                TaskView(content: task.content,
-                                         date: task.date,
-                                         isDone: task.isDone,
-                                         dueDate: task.dueDate,
-                                         note: task,
-                                         viewModel: viewModel)
-                                .swipeActions {
-                                    Button(role: .destructive) {
-                                        if let index = viewModel.notes.firstIndex(where: { $0.id == task.id }) {
-                                            viewModel.notes.remove(at: index)
+            ZStack {
+                VStack(alignment: .center, spacing: 4) {
+                    if tasks.isEmpty {
+                        Spacer()
+                        Text("Nothing here, yet")
+                            .foregroundColor(.secondary)
+                            .fontWeight(.medium)
+                        Text("Add tasks to get started.")
+                            .foregroundColor(.secondary)
+                            .multilineTextAlignment(.center)
+                    } else {
+                        ScrollView {
+                            LazyVStack(spacing: 0) {
+                                ForEach(tasks) { task in
+                                    TaskView(content: task.content,
+                                             date: task.date,
+                                             isDone: task.isDone,
+                                             dueDate: task.dueDate,
+                                             note: task,
+                                             viewModel: viewModel)
+                                    .swipeActions {
+                                        Button(role: .destructive) {
+                                            if let index = viewModel.notes.firstIndex(where: { $0.id == task.id }) {
+                                                viewModel.notes.remove(at: index)
+                                            }
+                                        } label: {
+                                            Label("Delete", systemImage: "trash")
                                         }
-                                    } label: {
-                                        Label("Delete", systemImage: "trash")
                                     }
+                                    Divider()
                                 }
-                                Divider()
                             }
                         }
                     }
+                    
+                    Spacer()
                 }
-                
-                Spacer()
-            }
-            .padding(.horizontal, 16)
-            .navigationTitle("Journal")
-            .toolbar {
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    Button(action: {
-                        // Handle search action
-                    }) {
-                        //Image(systemName: "magnifyingglass")
-                            //.foregroundColor(.primary)
+                .padding(.horizontal, 16)
+                .navigationTitle("Journal")
+                .toolbar {
+                    ToolbarItem(placement: .navigationBarTrailing) {
+                        Button(action: {
+                            // Handle search action
+                        }) {
+                            //Image(systemName: "magnifyingglass")
+                                //.foregroundColor(.primary)
+                        }
                     }
                 }
-            }
-            .overlay(alignment: .bottom) {
-                Button(action: {
-                    selectedNote = nil
-                    showingNoteSheet = true
-                }) {
-                    Image(systemName: "plus")
-                        .font(.title2)
-                        .fontWeight(.semibold)
-                        .foregroundColor(Color(UIColor.systemGray6))
-                        .frame(width: 56, height: 56)
-                        .background(Color.primary)
-                        .clipShape(Circle())
+                .overlay(alignment: .bottom) {
+                    Button(action: {
+                        showingNewEntryView = true
+                    }) {
+                        Image(systemName: "plus")
+                            .font(.title2)
+                            .fontWeight(.semibold)
+                            .foregroundColor(Color(UIColor.systemGray6))
+                            .frame(width: 56, height: 56)
+                            .background(Color.primary)
+                            .clipShape(Circle())
+                    }
                 }
-            }
-            .sheet(isPresented: $showingNoteSheet) {
-                CreateView(viewModel: viewModel, existingNote: selectedNote)
-            }
-            .sheet(item: $selectedNote) { note in
-                CreateView(viewModel: viewModel, existingNote: note)
-            }
-            .sheet(isPresented: $showingDatePicker) {
-                DueDatePicker(selectedDate: $dueDate, isPresented: $showingDatePicker)
+
+                if showingNewEntryView {
+                    Color.black.opacity(0.4)
+                        .ignoresSafeArea()
+                        .onTapGesture {
+                            showingNewEntryView = false
+                        }
+
+                    NewEntryView()
+                        .transition(.move(edge: .bottom))
+                }
             }
         }
         .ignoresSafeArea()
