@@ -1,27 +1,20 @@
 import SwiftUI
 
-enum ItemType: String, Codable {
-    case note
-    case task
-}
-
-struct Note: Identifiable, Codable {
+struct Task: Identifiable, Codable {
     let id: UUID
     var content: String
     var date: Date
-    var type: ItemType
     var isDone: Bool = false
     var dueDate: Date?
 
     enum CodingKeys: String, CodingKey {
-        case id, content, date, type, isDone, dueDate
+        case id, content, date, isDone, dueDate
     }
 
-    init(id: UUID = UUID(), content: String, date: Date, type: ItemType, isDone: Bool = false, dueDate: Date? = nil) {
+    init(id: UUID = UUID(), content: String, date: Date, isDone: Bool = false, dueDate: Date? = nil) {
         self.id = id
         self.content = content
         self.date = date
-        self.type = type
         self.isDone = isDone
         self.dueDate = dueDate
     }
@@ -31,89 +24,84 @@ struct Note: Identifiable, Codable {
         id = try container.decode(UUID.self, forKey: .id)
         content = try container.decode(String.self, forKey: .content)
         date = try container.decode(Date.self, forKey: .date)
-        type = try container.decode(ItemType.self, forKey: .type)
         isDone = try container.decode(Bool.self, forKey: .isDone)
         dueDate = try container.decodeIfPresent(Date.self, forKey: .dueDate)
     }
 }
 
-class NotesViewModel: ObservableObject {
-    @Published var notes: [Note] = [] {
+class TasksViewModel: ObservableObject {
+    @Published var tasks: [Task] = [] {
         didSet {
-            saveNotes()
+            saveTasks()
         }
     }
     
-    private let notesKey = "notesKey"
+    private let tasksKey = "tasksKey"
     
     init() {
-        loadNotes()
+        loadTasks()
     }
     
-    func addNote(content: String, type: ItemType, dueDate: Date? = nil) {
-        let note = Note(content: content, date: Date(), type: type, isDone: false, dueDate: dueDate)
-        notes.insert(note, at: 0)
+    func addTask(content: String, dueDate: Date? = nil) {
+        let task = Task(content: content, date: Date(), isDone: false, dueDate: dueDate)
+        tasks.insert(task, at: 0)
     }
     
-    func deleteNote(at offsets: IndexSet) {
-        notes.remove(atOffsets: offsets)
+    func deleteTask(at offsets: IndexSet) {
+        tasks.remove(atOffsets: offsets)
     }
     
-    func updateNote(note: Note, newContent: String, newDueDate: Date? = nil) {
-        if let index = notes.firstIndex(where: { $0.id == note.id }) {
-            notes[index].content = newContent
-            notes[index].dueDate = newDueDate
+    func updateTask(task: Task, newContent: String, newDueDate: Date? = nil) {
+        if let index = tasks.firstIndex(where: { $0.id == task.id }) {
+            tasks[index].content = newContent
+            tasks[index].dueDate = newDueDate
         }
     }
     
-    func toggleTaskDone(note: Note) {
-        if let index = notes.firstIndex(where: { $0.id == note.id }) {
-            notes[index].isDone.toggle()
+    func toggleTaskDone(task: Task) {
+        if let index = tasks.firstIndex(where: { $0.id == task.id }) {
+            tasks[index].isDone.toggle()
         }
     }
     
-    func updateDueDate(for note: Note, to newDueDate: Date?) {
-        if let index = notes.firstIndex(where: { $0.id == note.id }) {
-            notes[index].dueDate = newDueDate
+    func updateDueDate(for task: Task, to newDueDate: Date?) {
+        if let index = tasks.firstIndex(where: { $0.id == task.id }) {
+            tasks[index].dueDate = newDueDate
         }
     }
     
-    func deleteNoteById(_ id: UUID) {
-        if let index = notes.firstIndex(where: { $0.id == id }) {
-            notes.remove(at: index)
+    func deleteTaskById(_ id: UUID) {
+        if let index = tasks.firstIndex(where: { $0.id == id }) {
+            tasks.remove(at: index)
         }
     }
     
-    private func saveNotes() {
-        if let encoded = try? JSONEncoder().encode(notes) {
-            UserDefaults.standard.set(encoded, forKey: notesKey)
+    private func saveTasks() {
+        if let encoded = try? JSONEncoder().encode(tasks) {
+            UserDefaults.standard.set(encoded, forKey: tasksKey)
         }
     }
     
-    private func loadNotes() {
-        if let savedNotes = UserDefaults.standard.object(forKey: notesKey) as? Data {
-            if let decodedNotes = try? JSONDecoder().decode([Note].self, from: savedNotes) {
-                notes = decodedNotes
+    private func loadTasks() {
+        if let savedTasks = UserDefaults.standard.object(forKey: tasksKey) as? Data {
+            if let decodedTasks = try? JSONDecoder().decode([Task].self, from: savedTasks) {
+                tasks = decodedTasks
             }
         }
     }
 }
 
 struct ContentView: View {
-    @StateObject private var viewModel = NotesViewModel()
+    @StateObject private var viewModel = TasksViewModel()
     @State private var showingNewTaskView = false
     @State private var backgroundOpacity: Double = 0.0
     @State private var showPlusButton = true
-
-    var tasks: [Note] {
-        viewModel.notes.filter { $0.type == .task }
-    }
 
     var body: some View {
         NavigationView {
             ZStack {
                 VStack(alignment: .center, spacing: 4) {
-                    if tasks.isEmpty {
+                    if viewModel.tasks.isEmpty {
                         Spacer()
                         Text("Nothing here, yet")
                             .foregroundColor(.secondary)
@@ -124,23 +112,21 @@ struct ContentView: View {
                     } else {
                         ScrollView {
                             LazyVStack(spacing: 0) {
-                                ForEach(tasks) { task in
+                                ForEach(viewModel.tasks) { task in
                                     TasksRowView(content: task.content,
                                              date: task.date,
                                              isDone: task.isDone,
                                              dueDate: task.dueDate,
-                                             note: task,
+                                             task: task,
                                              viewModel: viewModel)
                                     Divider()
                                 }
                             }
                         }
                     }
-                    
-
                 }
                 .padding(.horizontal, 16)
-                .navigationTitle("Journal")
+                .navigationTitle("Tasks")
 
                 if showPlusButton {
                     VStack {
@@ -159,7 +145,6 @@ struct ContentView: View {
                                 .background(Color.primary)
                                 .clipShape(Circle())
                         }
-                        //.padding(.bottom, 16)
                         .transition(.scale.combined(with: .opacity))
                         .animation(.easeInOut(duration: 0.3), value: showPlusButton)
                     }

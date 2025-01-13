@@ -5,18 +5,18 @@ struct TasksRowView: View {
     let date: Date
     let isDone: Bool
     let dueDate: Date?
-    let note: Note
-    @StateObject var viewModel: NotesViewModel
+    let task: Task
+    @StateObject var viewModel: TasksViewModel
     @State private var showingDatePicker = false
     @State private var selectedDueDate: Date?
     @State private var showingCreateView = false
 
-    init(content: String, date: Date, isDone: Bool, dueDate: Date?, note: Note, viewModel: NotesViewModel) {
+    init(content: String, date: Date, isDone: Bool, dueDate: Date?, task: Task, viewModel: TasksViewModel) {
         self.content = content
         self.date = date
         self.isDone = isDone
         self.dueDate = dueDate
-        self.note = note
+        self.task = task
         _viewModel = StateObject(wrappedValue: viewModel)
         _selectedDueDate = State(initialValue: dueDate)
     }
@@ -30,7 +30,7 @@ struct TasksRowView: View {
                 .onTapGesture {
                     let impactFeedback = UIImpactFeedbackGenerator(style: .medium)
                     impactFeedback.impactOccurred()
-                    viewModel.toggleTaskDone(note: note)
+                    viewModel.toggleTaskDone(task: task)
                 }
             
             HStack(alignment: .center, spacing: 4) {
@@ -68,16 +68,16 @@ struct TasksRowView: View {
         .contentShape(Rectangle()) // Make the entire HStack tappable
         .sheet(isPresented: $showingDatePicker) {
             DueDatePicker(selectedDate: $selectedDueDate, isPresented: $showingDatePicker, onClear: {
-                viewModel.updateDueDate(for: note, to: nil)
+                viewModel.updateDueDate(for: task, to: nil)
             })
                 .onDisappear {
                     if let newDate = selectedDueDate {
-                        viewModel.updateDueDate(for: note, to: newDate)
+                        viewModel.updateDueDate(for: task, to: newDate)
                     }
                 }
         }
         .sheet(isPresented: $showingCreateView) {
-            TaskView(viewModel: viewModel, existingNote: note)
+            TaskView(viewModel: viewModel, existingTask: task)
         }
     }
     
@@ -104,39 +104,35 @@ struct TasksRowView: View {
             
             VStack(spacing: 16) {
                 // Create a mock viewModel for preview
-                let viewModel = NotesViewModel()
+                let viewModel = TasksViewModel()
                 
                 // Task without due date
-                let taskNoDueDate = Note(
+                let taskNoDueDate = Task(
                     content: "Simple task without due date",
                     date: Date(),
-                    type: .task,
                     isDone: false
                 )
                 
                 // Task with future due date
-                let taskFutureDueDate = Note(
+                let taskFutureDueDate = Task(
                     content: "Task with future due date",
                     date: Date(),
-                    type: .task,
                     isDone: false,
                     dueDate: Date().addingTimeInterval(86400 * 2)
                 )
                 
                 // Task with past due date
-                let taskPastDueDate = Note(
+                let taskPastDueDate = Task(
                     content: "Task with past due date",
                     date: Date(),
-                    type: .task,
                     isDone: false,
                     dueDate: Date().addingTimeInterval(-86400)
                 )
                 
                 // Completed task with due date
-                let taskCompleted = Note(
+                let taskCompleted = Task(
                     content: "Completed task with due date",
                     date: Date(),
-                    type: .task,
                     isDone: true,
                     dueDate: Date().addingTimeInterval(86400)
                 )
@@ -146,28 +142,28 @@ struct TasksRowView: View {
                        date: taskNoDueDate.date,
                        isDone: taskNoDueDate.isDone,
                        dueDate: taskNoDueDate.dueDate,
-                       note: taskNoDueDate,
+                       task: taskNoDueDate,
                        viewModel: viewModel)
                 
                 TasksRowView(content: taskFutureDueDate.content,
                        date: taskFutureDueDate.date,
                        isDone: taskFutureDueDate.isDone,
                        dueDate: taskFutureDueDate.dueDate,
-                       note: taskFutureDueDate,
+                       task: taskFutureDueDate,
                        viewModel: viewModel)
                 
                 TasksRowView(content: taskPastDueDate.content,
                        date: taskPastDueDate.date,
                        isDone: taskPastDueDate.isDone,
                        dueDate: taskPastDueDate.dueDate,
-                       note: taskPastDueDate,
+                       task: taskPastDueDate,
                        viewModel: viewModel)
                 
                 TasksRowView(content: taskCompleted.content,
                        date: taskCompleted.date,
                        isDone: taskCompleted.isDone,
                        dueDate: taskCompleted.dueDate,
-                       note: taskCompleted,
+                       task: taskCompleted,
                        viewModel: viewModel)
             }
             .padding()

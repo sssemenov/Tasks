@@ -10,19 +10,19 @@ import UserNotifications
 
 struct TaskView: View {
     @Environment(\.dismiss) private var dismiss
-    @ObservedObject var viewModel: NotesViewModel
+    @ObservedObject var viewModel: TasksViewModel
     @State private var content: String
     @State private var dueDate: Date?
     @State private var hasDueDate: Bool
-    let existingNote: Note?
+    let existingTask: Task?
     @FocusState private var isContentFocused: Bool
     @State private var showingDatePicker = false
     
-    init(viewModel: NotesViewModel, existingNote: Note? = nil) {
+    init(viewModel: TasksViewModel, existingTask: Task? = nil) {
         self.viewModel = viewModel
-        self.existingNote = existingNote
-        _content = State(initialValue: existingNote?.content ?? "")
-        if let existingDueDate = existingNote?.dueDate {
+        self.existingTask = existingTask
+        _content = State(initialValue: existingTask?.content ?? "")
+        if let existingDueDate = existingTask?.dueDate {
             _dueDate = State(initialValue: existingDueDate)
             _hasDueDate = State(initialValue: true)
         } else {
@@ -46,7 +46,7 @@ struct TaskView: View {
                     isContentFocused = true
                 }
                 .onAppear {
-                    if existingNote == nil {
+                    if existingTask == nil {
                         isContentFocused = true
                     }
                 }
@@ -89,14 +89,14 @@ struct TaskView: View {
                         
                         Spacer()
                         
-                        if existingNote != nil {
+                        if existingTask != nil {
                             Button(action: {
                                 withAnimation {
                                     dismiss()
                                 }
                                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-                                    if let note = existingNote {
-                                        viewModel.deleteNoteById(note.id)
+                                    if let task = existingTask {
+                                        viewModel.deleteTaskById(task.id)
                                     }
                                 }
                             }) {
@@ -124,20 +124,19 @@ struct TaskView: View {
                     }
                 }
                 
-                if existingNote == nil || isContentFocused {
+                if existingTask == nil || isContentFocused {
                     ToolbarItem(placement: .navigationBarTrailing) {
                         Button("Save") {
                             if !content.isEmpty {
-                                if existingNote == nil {
-                                    viewModel.addNote(
+                                if existingTask == nil {
+                                    viewModel.addTask(
                                         content: content,
-                                        type: .task,
                                         dueDate: hasDueDate ? dueDate : nil
                                     )
                                     dismiss()
-                                } else if let note = existingNote {
-                                    viewModel.updateNote(
-                                        note: note,
+                                } else if let task = existingTask {
+                                    viewModel.updateTask(
+                                        task: task,
                                         newContent: content,
                                         newDueDate: hasDueDate ? dueDate : nil
                                     )
@@ -154,8 +153,8 @@ struct TaskView: View {
                 DueDatePicker(selectedDate: $dueDate, isPresented: $showingDatePicker, onClear: clearDueDate)
                     .onDisappear {
                         hasDueDate = dueDate != nil
-                        if let note = existingNote {
-                            viewModel.updateDueDate(for: note, to: dueDate)
+                        if let task = existingTask {
+                            viewModel.updateDueDate(for: task, to: dueDate)
                         }
                     }
             }
@@ -199,12 +198,12 @@ struct TaskView: View {
     private func clearDueDate() {
         dueDate = nil
         hasDueDate = false
-        if let note = existingNote {
-            viewModel.updateDueDate(for: note, to: nil)
+        if let task = existingTask {
+            viewModel.updateDueDate(for: task, to: nil)
         }
     }
 }
 
 #Preview {
-    TaskView(viewModel: NotesViewModel())
+    TaskView(viewModel: TasksViewModel())
 }

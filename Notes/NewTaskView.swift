@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct NewTaskView: View {
-    @ObservedObject var viewModel: NotesViewModel
+    @ObservedObject var viewModel: TasksViewModel
     @State private var content: String = ""
     @State private var showingDatePicker = false
     @State private var showingReminderPicker = false
@@ -23,7 +23,6 @@ struct NewTaskView: View {
             Spacer()
             
             VStack {
-
                 VStack(alignment: .leading, spacing: 56) {
                     TextField("New entry", text: $content)
                         .font(.title2)
@@ -65,9 +64,8 @@ struct NewTaskView: View {
                                 isContentFocused = false
                                 isPresented = false
                                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-                                    viewModel.addNote(
+                                    viewModel.addTask(
                                         content: content,
-                                        type: .task,
                                         dueDate: hasDueDate ? dueDate : nil
                                     )
                                 }
@@ -108,7 +106,6 @@ struct NewTaskView: View {
                 }
             }
         }
-        //.background(Color(UIColor.red))
         .opacity(viewOpacity)
         .sheet(isPresented: $showingDatePicker) {
             DueDatePicker(selectedDate: $dueDate, isPresented: $showingDatePicker, onClear: clearDueDate)
@@ -153,5 +150,5 @@ struct RoundedCornersShape: Shape {
 }
 
 #Preview {
-    NewTaskView(viewModel: NotesViewModel(), isPresented: .constant(true))
+    NewTaskView(viewModel: TasksViewModel(), isPresented: .constant(true))
 }
