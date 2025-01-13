@@ -67,7 +67,9 @@ struct TaskView: View {
         .padding(.vertical, 16)
         .contentShape(Rectangle()) // Make the entire HStack tappable
         .sheet(isPresented: $showingDatePicker) {
-            DueDatePicker(selectedDate: $selectedDueDate, isPresented: $showingDatePicker)
+            DueDatePicker(selectedDate: $selectedDueDate, isPresented: $showingDatePicker, onClear: {
+                viewModel.updateDueDate(for: note, to: nil)
+            })
                 .onDisappear {
                     if let newDate = selectedDueDate {
                         viewModel.updateDueDate(for: note, to: newDate)
