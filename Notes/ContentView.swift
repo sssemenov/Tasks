@@ -103,6 +103,7 @@ struct ContentView: View {
     @StateObject private var viewModel = NotesViewModel()
     @State private var showingNewEntryView = false
     @State private var backgroundOpacity: Double = 0.0
+    @State private var showPlusButton = true
 
     var tasks: [Note] {
         viewModel.notes.filter { $0.type == .task }
@@ -130,15 +131,6 @@ struct ContentView: View {
                                              dueDate: task.dueDate,
                                              note: task,
                                              viewModel: viewModel)
-                                    .swipeActions {
-                                        Button(role: .destructive) {
-                                            if let index = viewModel.notes.firstIndex(where: { $0.id == task.id }) {
-                                                viewModel.notes.remove(at: index)
-                                            }
-                                        } label: {
-                                            Label("Delete", systemImage: "trash")
-                                        }
-                                    }
                                     Divider()
                                 }
                             }
@@ -149,36 +141,31 @@ struct ContentView: View {
                 }
                 .padding(.horizontal, 16)
                 .navigationTitle("Journal")
-                .toolbar {
-                    ToolbarItem(placement: .navigationBarTrailing) {
+
+                if showPlusButton {
+                    VStack {
+                        Spacer()
                         Button(action: {
-                            // Handle search action
+                            let impactFeedback = UIImpactFeedbackGenerator(style: .medium)
+                            impactFeedback.impactOccurred()
+                            showingNewEntryView = true
+                            showPlusButton = false
                         }) {
-                            //Image(systemName: "magnifyingglass")
-                                //.foregroundColor(.primary)
+                            Image(systemName: "plus")
+                                .font(.title2)
+                                .fontWeight(.semibold)
+                                .foregroundColor(Color(UIColor.systemGray6))
+                                .frame(width: 56, height: 56)
+                                .background(Color.primary)
+                                .clipShape(Circle())
                         }
+                        .padding(.bottom, 16)
+                        .transition(.scale.combined(with: .opacity))
+                        .animation(.easeInOut(duration: 0.3), value: showPlusButton)
                     }
-                }
-                
-                VStack {
-                    Spacer()
-                    Button(action: {
-                        let impactFeedback = UIImpactFeedbackGenerator(style: .medium)
-                        impactFeedback.impactOccurred()
-                        showingNewEntryView = true
-                    }) {
-                        Image(systemName: "plus")
-                            .font(.title2)
-                            .fontWeight(.semibold)
-                            .foregroundColor(Color(UIColor.systemGray6))
-                            .frame(width: 56, height: 56)
-                            .background(Color.primary)
-                            .clipShape(Circle())
-                    }
+                    .ignoresSafeArea(.keyboard, edges: .bottom)
                     .padding(.bottom, 16)
                 }
-                .ignoresSafeArea(.keyboard, edges: .bottom)
-                .padding(.bottom, 16)
 
                 if showingNewEntryView {
                     Color.black.opacity(backgroundOpacity)
@@ -193,12 +180,17 @@ struct ContentView: View {
                     NewEntryView(viewModel: viewModel, isPresented: $showingNewEntryView)
                         .onAppear {
                             withAnimation {
-                                backgroundOpacity = 0.5
+                                backgroundOpacity = 0.4
                             }
                         }
                         .onDisappear {
                             withAnimation {
                                 backgroundOpacity = 0.0
+                            }
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                                withAnimation(.easeInOut(duration: 0.3)) {
+                                    showPlusButton = true
+                                }
                             }
                         }
                 }

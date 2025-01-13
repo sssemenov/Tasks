@@ -28,6 +28,8 @@ struct TaskView: View {
                 .foregroundColor(isDone ? .gray : .primary)
                 .font(.system(size: 20))
                 .onTapGesture {
+                    let impactFeedback = UIImpactFeedbackGenerator(style: .medium)
+                    impactFeedback.impactOccurred()
                     viewModel.toggleTaskDone(note: note)
                 }
             

@@ -105,7 +105,7 @@ struct CreateView: View {
                             }
                             .padding(16)
                             .background(Color.red.opacity(0.2))
-                            .cornerRadius(8)
+                            .cornerRadius(999)
                             .padding(.leading, 8)
                         }
                     }

@@ -17,17 +17,12 @@ struct NewEntryView: View {
     @Binding var isPresented: Bool
     @State private var dueDate: Date? = nil
     @State private var hasDueDate: Bool = false
-    @State private var dragOffset: CGSize = .zero
 
     var body: some View {
         VStack {
             Spacer()
             
             VStack {
-//                Rectangle()
-//                    .fill(Color(UIColor.systemFill))
-//                    .frame(width: 40, height: 4)
-//                    .cornerRadius(2)
 
                 VStack(alignment: .leading, spacing: 56) {
                     TextField("New entry", text: $content)
@@ -40,17 +35,22 @@ struct NewEntryView: View {
                         }) {
                             HStack {
                                 Image(systemName: hasDueDate ? "flag.fill" : "flag")
+                                    .font(.subheadline)
+
                                 Text(hasDueDate ? "\(formattedDueDate(dueDate))" : "Deadline")
-                                
+                                    .font(.subheadline)
+
                                 if hasDueDate {
                                     Image(systemName: "multiply.circle.fill")
-                                        .foregroundColor(.red)
+                                        .font(.subheadline)
+                                        
+                                        .foregroundColor(Color(UIColor.secondaryLabel))
                                         .onTapGesture {
                                             clearDueDate()
                                         }
                                 }
                             }
-                            .padding()
+                            .padding(12)
                             .background(Color(UIColor.secondarySystemBackground))
                             .foregroundColor(.primary)
                             .cornerRadius(8)
@@ -59,6 +59,8 @@ struct NewEntryView: View {
                         Spacer()
                         
                         Button(action: {
+                            let impactFeedback = UIImpactFeedbackGenerator(style: .medium)
+                            impactFeedback.impactOccurred()
                             if !content.isEmpty {
                                 isContentFocused = false
                                 isPresented = false
@@ -73,11 +75,12 @@ struct NewEntryView: View {
                         }) {
                             HStack {
                                 Image(systemName: "arrow.up")
-                                    .foregroundColor(content.isEmpty ? Color(UIColor.tertiaryLabel) : Color(UIColor.systemGray6))
-                                    .fontWeight(.semibold)
+                                    .font(.subheadline)
+                                    .fontWeight(.bold)
+                                    .foregroundColor(content.isEmpty ? .primary.opacity(0.2) : Color(UIColor.systemGray6))
                             }
-                            .padding()
-                            .background(content.isEmpty ? Color(UIColor.secondarySystemBackground).opacity(0.8) : Color.primary)
+                            .padding(12)
+                            .background(content.isEmpty ? Color(UIColor.secondarySystemBackground).opacity(0.7) : Color.primary)
                             .cornerRadius(999)
                         }
                         .disabled(content.isEmpty)
@@ -89,13 +92,21 @@ struct NewEntryView: View {
             .padding(.bottom, 16)
             .background(Color(UIColor.tertiarySystemBackground))
             .clipShape(RoundedCornersShape(corners: [.topLeft, .topRight], radius: 20))
+            .shadow(color: Color.black.opacity(0.1), radius: 32, x: 0, y: 5)
             .onAppear {
                 isContentFocused = true
-                withAnimation(.easeIn(duration: 0.2)) {
+                withAnimation(.easeIn(duration: 0.15)) {
                     viewOpacity = 1.0
                 }
             }
-
+            .onDisappear {
+                isContentFocused = false
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                    withAnimation(.easeOut(duration: 0.3)) {
+                        viewOpacity = 0.0
+                    }
+                }
+            }
         }
         //.background(Color(UIColor.red))
         .opacity(viewOpacity)
