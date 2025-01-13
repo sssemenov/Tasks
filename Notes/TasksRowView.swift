@@ -77,7 +77,7 @@ struct TasksRowView: View {
                 }
         }
         .sheet(isPresented: $showingCreateView) {
-            CreateView(viewModel: viewModel, existingNote: note)
+            TaskView(viewModel: viewModel, existingNote: note)
         }
     }
     

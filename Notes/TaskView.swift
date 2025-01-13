@@ -8,7 +8,7 @@
 import SwiftUI
 import UserNotifications
 
-struct CreateView: View {
+struct TaskView: View {
     @Environment(\.dismiss) private var dismiss
     @ObservedObject var viewModel: NotesViewModel
     @State private var content: String
@@ -206,5 +206,5 @@ struct CreateView: View {
 }
 
 #Preview {
-    CreateView(viewModel: NotesViewModel())
+    TaskView(viewModel: NotesViewModel())
 }
