@@ -22,7 +22,7 @@ struct TasksRowView: View {
     }
 
     var body: some View {
-        HStack(alignment: .center, spacing: 8) {
+        HStack(alignment: .center, spacing: 12) {
             // Checkbox
             Image(systemName: isDone ? "checkmark.square.fill" : "square")
                 .foregroundColor(isDone ? .gray : .primary)
@@ -47,8 +47,8 @@ struct TasksRowView: View {
                 
                 if let dueDate = dueDate {
                     HStack(spacing: 4) {
-                        Image(systemName: "flag")
-                            .font(.caption)
+//                        Image(systemName: "flag")
+//                            .font(.caption)
                         Text(formattedDueDate(dueDate))
                             .font(.caption)
                     }
@@ -56,7 +56,7 @@ struct TasksRowView: View {
                     .padding(.vertical, 6)
                     .background(isDone ? Color(uiColor: .secondarySystemBackground) : (dueDate < Date() ? Color.red.opacity(0.1) : Color(uiColor: .secondarySystemBackground)))
                     .cornerRadius(6)
-                    .foregroundColor(isDone ? .secondary : (dueDate < Date() ? .red : .primary))
+                    .foregroundColor(isDone ? .primary : (dueDate < Date() ? .red : .primary))
                     .onTapGesture {
                         selectedDueDate = dueDate
                         showingDatePicker = true

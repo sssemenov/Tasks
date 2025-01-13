@@ -112,16 +112,19 @@ struct ContentView: View {
                     } else {
                         ScrollView {
                             LazyVStack(spacing: 0) {
-                                ForEach(viewModel.tasks) { task in
+                                ForEach(viewModel.tasks.sorted(by: { 
+                                    ($0.dueDate ?? Date.distantFuture) < ($1.dueDate ?? Date.distantFuture) 
+                                })) { task in
                                     TasksRowView(content: task.content,
-                                             date: task.date,
-                                             isDone: task.isDone,
-                                             dueDate: task.dueDate,
-                                             task: task,
-                                             viewModel: viewModel)
+                                                 date: task.date,
+                                                 isDone: task.isDone,
+                                                 dueDate: task.dueDate,
+                                                 task: task,
+                                                 viewModel: viewModel)
                                     Divider()
                                 }
                             }
+                            .padding(.vertical, 8)
                         }
                     }
                 }

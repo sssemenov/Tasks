@@ -24,7 +24,7 @@ struct NewTaskView: View {
             
             VStack {
                 VStack(alignment: .leading, spacing: 56) {
-                    TextField("New entry", text: $content)
+                    TextField("New entry", text: $content, axis: .vertical)
                         .font(.title2)
                         .padding(.horizontal, 16)
                         .focused($isContentFocused)
@@ -34,10 +34,10 @@ struct NewTaskView: View {
                         }) {
                             HStack {
                                 Image(systemName: hasDueDate ? "flag.fill" : "flag")
-                                    .font(.subheadline)
+                                    .font(.callout)
 
                                 Text(hasDueDate ? "\(formattedDueDate(dueDate))" : "Deadline")
-                                    .font(.subheadline)
+                                    .font(.callout)
 
                                 if hasDueDate {
                                     Image(systemName: "multiply.circle.fill")
@@ -52,15 +52,26 @@ struct NewTaskView: View {
                             .padding(12)
                             .background(Color(UIColor.secondarySystemBackground))
                             .foregroundColor(.primary)
-                            .cornerRadius(8)
+                            .cornerRadius(10)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 10)
+                                    .stroke(
+                                        LinearGradient(
+                                            gradient: Gradient(colors: [Color(UIColor.secondarySystemBackground), Color(hex: "E6E6EF")]),
+                                            startPoint: .top,
+                                            endPoint: .bottom
+                                        ),
+                                        lineWidth: 1
+                                    )
+                            )
                         }
                         
                         Spacer()
                         
-                        Button(action: {
-                            let impactFeedback = UIImpactFeedbackGenerator(style: .medium)
-                            impactFeedback.impactOccurred()
-                            if !content.isEmpty {
+                        if !content.isEmpty {
+                            Button(action: {
+                                let impactFeedback = UIImpactFeedbackGenerator(style: .medium)
+                                impactFeedback.impactOccurred()
                                 isContentFocused = false
                                 isPresented = false
                                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
@@ -69,19 +80,18 @@ struct NewTaskView: View {
                                         dueDate: hasDueDate ? dueDate : nil
                                     )
                                 }
+                            }) {
+                                HStack {
+                                    Image(systemName: "arrow.up")
+                                        .font(.callout)
+                                        .fontWeight(.bold)
+                                        .foregroundColor(Color(UIColor.systemGray6))
+                                }
+                                .padding(12)
+                                .background(Color.primary)
+                                .cornerRadius(999)
                             }
-                        }) {
-                            HStack {
-                                Image(systemName: "arrow.up")
-                                    .font(.subheadline)
-                                    .fontWeight(.bold)
-                                    .foregroundColor(content.isEmpty ? .primary.opacity(0.2) : Color(UIColor.systemGray6))
-                            }
-                            .padding(12)
-                            .background(content.isEmpty ? Color(UIColor.secondarySystemBackground).opacity(0.7) : Color.primary)
-                            .cornerRadius(999)
                         }
-                        .disabled(content.isEmpty)
                     }
                     .padding(.horizontal, 16)
                 }
