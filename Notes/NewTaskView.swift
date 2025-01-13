@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-struct NewEntryView: View {
+struct NewTaskView: View {
     @ObservedObject var viewModel: NotesViewModel
     @State private var content: String = ""
     @State private var showingDatePicker = false
@@ -153,5 +153,5 @@ struct RoundedCornersShape: Shape {
 }
 
 #Preview {
-    NewEntryView(viewModel: NotesViewModel(), isPresented: .constant(true))
+    NewTaskView(viewModel: NotesViewModel(), isPresented: .constant(true))
 }

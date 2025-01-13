@@ -101,7 +101,7 @@ class NotesViewModel: ObservableObject {
 
 struct ContentView: View {
     @StateObject private var viewModel = NotesViewModel()
-    @State private var showingNewEntryView = false
+    @State private var showingNewTaskView = false
     @State private var backgroundOpacity: Double = 0.0
     @State private var showPlusButton = true
 
@@ -125,7 +125,7 @@ struct ContentView: View {
                         ScrollView {
                             LazyVStack(spacing: 0) {
                                 ForEach(tasks) { task in
-                                    TaskView(content: task.content,
+                                    TasksRowView(content: task.content,
                                              date: task.date,
                                              isDone: task.isDone,
                                              dueDate: task.dueDate,
@@ -148,7 +148,7 @@ struct ContentView: View {
                         Button(action: {
                             let impactFeedback = UIImpactFeedbackGenerator(style: .medium)
                             impactFeedback.impactOccurred()
-                            showingNewEntryView = true
+                            showingNewTaskView = true
                             showPlusButton = false
                         }) {
                             Image(systemName: "plus")
@@ -167,17 +167,17 @@ struct ContentView: View {
                     .padding(.bottom, 16)
                 }
 
-                if showingNewEntryView {
+                if showingNewTaskView {
                     Color.black.opacity(backgroundOpacity)
                         .ignoresSafeArea()
                         .onTapGesture {
                             withAnimation {
                                 backgroundOpacity = 0.0
                             }
-                            showingNewEntryView = false
+                            showingNewTaskView = false
                         }
 
-                    NewEntryView(viewModel: viewModel, isPresented: $showingNewEntryView)
+                    NewTaskView(viewModel: viewModel, isPresented: $showingNewTaskView)
                         .onAppear {
                             withAnimation {
                                 backgroundOpacity = 0.4

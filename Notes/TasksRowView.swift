@@ -1,6 +1,6 @@
 import SwiftUI
 
-struct TaskView: View {
+struct TasksRowView: View {
     let content: String
     let date: Date
     let isDone: Bool
@@ -142,28 +142,28 @@ struct TaskView: View {
                 )
                 
                 // Display all variations
-                TaskView(content: taskNoDueDate.content,
+                TasksRowView(content: taskNoDueDate.content,
                        date: taskNoDueDate.date,
                        isDone: taskNoDueDate.isDone,
                        dueDate: taskNoDueDate.dueDate,
                        note: taskNoDueDate,
                        viewModel: viewModel)
                 
-                TaskView(content: taskFutureDueDate.content,
+                TasksRowView(content: taskFutureDueDate.content,
                        date: taskFutureDueDate.date,
                        isDone: taskFutureDueDate.isDone,
                        dueDate: taskFutureDueDate.dueDate,
                        note: taskFutureDueDate,
                        viewModel: viewModel)
                 
-                TaskView(content: taskPastDueDate.content,
+                TasksRowView(content: taskPastDueDate.content,
                        date: taskPastDueDate.date,
                        isDone: taskPastDueDate.isDone,
                        dueDate: taskPastDueDate.dueDate,
                        note: taskPastDueDate,
                        viewModel: viewModel)
                 
-                TaskView(content: taskCompleted.content,
+                TasksRowView(content: taskCompleted.content,
                        date: taskCompleted.date,
                        isDone: taskCompleted.isDone,
                        dueDate: taskCompleted.dueDate,
