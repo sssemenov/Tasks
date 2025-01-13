@@ -137,7 +137,7 @@ struct ContentView: View {
                         }
                     }
                     
-                    Spacer()
+
                 }
                 .padding(.horizontal, 16)
                 .navigationTitle("Journal")
@@ -159,7 +159,7 @@ struct ContentView: View {
                                 .background(Color.primary)
                                 .clipShape(Circle())
                         }
-                        .padding(.bottom, 16)
+                        //.padding(.bottom, 16)
                         .transition(.scale.combined(with: .opacity))
                         .animation(.easeInOut(duration: 0.3), value: showPlusButton)
                     }
