@@ -40,7 +40,7 @@ struct ContentView: View {
             ZStack {
                 VStack(alignment: .center, spacing: 4) {
                     if viewModel.tasks.isEmpty {
-                        EmptyView()
+                        Empty1View()
                     } else {
                         ScrollView(showsIndicators: false) {
                             LazyVStack(spacing: 0) {

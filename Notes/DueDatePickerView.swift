@@ -6,18 +6,15 @@ struct DueDatePicker: View {
     var onClear: (() -> Void)?
 
     var body: some View {
-        VStack {
+        VStack { 
             DatePicker("Select Due Date", selection: Binding(
                 get: { selectedDate ?? Date() },
                 set: { selectedDate = $0 }
             ), displayedComponents: .date)
             .datePickerStyle(.graphical)
             .onChange(of: selectedDate) { newValue in
-                if newValue != nil {
-                    isPresented = false
-                }
+                isPresented = false
             }
-            .padding()
 
             if selectedDate != nil {
                 Button("Clear deadline") {

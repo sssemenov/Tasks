@@ -33,14 +33,14 @@ struct TaskView: View {
     
     var body: some View {
         NavigationView {
-            ZStack {
+            VStack {
                 VStack(spacing: 0) {
                     TextField("New Task", text: $content, axis: .vertical)
                         .font(.title2)
                         .padding(.horizontal, 16)
                         .focused($isContentFocused)
                     
-                    Spacer()
+                   // Spacer()
                 }
                 .onTapGesture {
                     isContentFocused = true
@@ -50,42 +50,56 @@ struct TaskView: View {
                         isContentFocused = true
                     }
                 }
-                
+            
                 VStack {
-                    Spacer()
-                    
                     HStack {
                         Button(action: {
                             showingDatePicker.toggle()
                         }) {
                             HStack {
-                                Image(systemName: hasDueDate ? "flag.fill" : "flag")
+                                Image(systemName: "calendar")
+                                    .font(.subheadline)
+                                    .fontWeight(.medium)
+                                    .foregroundColor(hasDueDate ? .primary : Color(UIColor.secondaryLabel))
+
                                 Text(hasDueDate ? "\(formattedDueDate(dueDate))" : "Deadline")
+                                    .font(.subheadline)
+                                    .fontWeight(.medium)
+                                    .foregroundColor(hasDueDate ? .primary : Color(UIColor.secondaryLabel))
+//
+//                                if hasDueDate {
+//                                    Image(systemName: "multiply.circle.fill")
+//                                        .font(.callout)
+//                                        .foregroundColor(Color(UIColor.secondaryLabel))
+//                                        .onTapGesture {
+//                                            clearDueDate()
+//                                        }
+//                                }
                             }
-                            .padding()
-                            .background(Color(UIColor.secondarySystemBackground))
-                            .foregroundColor(.primary)
-                            .cornerRadius(8)
+                            .padding(.horizontal, 12)
+                            .padding(.vertical, 12)
+                            .cornerRadius(10)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 10)
+                                    .stroke(Color(UIColor.systemGray3), lineWidth: 0.5)
+                            )
                         }
                         
-                        Button(action: {
-                            scheduleNotification()
-                        }) {
-                            // Notification button code
-                        }
+                        Spacer()
+
                         
-                        if hasDueDate {
-                            Button(action: {
-                                clearDueDate()
-                            }) {
-                                Image(systemName: "multiply")
-                                    .foregroundColor(.primary)
-                            }
-                            .padding(20)
-                            .background(Color(UIColor.secondarySystemBackground))
-                            .cornerRadius(8)
-                            .padding(.leading, 8)
-                        }
+//                        if hasDueDate {
+//                            Button(action: {
+//                                clearDueDate()
+//                            }) {
+//                                Image(systemName: "multiply")
+//                                    .foregroundColor(.primary)
+//                            }
+//                            .padding(20)
+//                            .background(Color(UIColor.secondarySystemBackground))
+//                            .cornerRadius(8)
+//                            .padding(.leading, 8)
+//                        }
                         
                         Spacer()
                         
@@ -111,6 +125,20 @@ struct TaskView: View {
                     }
                     .padding()
                 }
+                Spacer()
+                
+                HStack {
+                    Text("Comment")
+                        .foregroundStyle(.secondary)
+                    Spacer()
+                    
+                }
+                .padding()
+                .frame(maxWidth: .infinity, maxHeight: 44)
+                .background(Color(UIColor.secondarySystemBackground))
+                .cornerRadius(999)
+                .padding()
+                
             }
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {

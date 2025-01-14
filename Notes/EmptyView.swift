@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-struct EmptyView: View {
+struct Empty1View: View {
     var body: some View {
         VStack {
             Text("Nothing here, yet")
