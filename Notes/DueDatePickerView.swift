@@ -12,8 +12,10 @@ struct DueDatePicker: View {
                 set: { selectedDate = $0 }
             ), displayedComponents: .date)
             .datePickerStyle(.graphical)
-            .onChange(of: selectedDate) {
-                isPresented = false
+            .onChange(of: selectedDate) { newValue in
+                if newValue != nil {
+                    isPresented = false
+                }
             }
             .padding()
 
@@ -27,5 +29,14 @@ struct DueDatePicker: View {
             }
         }
         .presentationDetents([.medium])
+    }
+}
+
+struct DueDatePicker_Previews: PreviewProvider {
+    @State static var selectedDate: Date? = Date()
+    @State static var isPresented: Bool = true
+
+    static var previews: some View {
+        DueDatePicker(selectedDate: $selectedDate, isPresented: $isPresented, onClear: nil)
     }
 }

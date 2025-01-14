@@ -9,13 +9,20 @@ import SwiftUI
 
 struct EmptyView: View {
     var body: some View {
-        Text("Nothing here, yet")
-            .foregroundColor(.secondary)
-            .fontWeight(.medium)
-        Text("Add tasks to get started.")
-            .foregroundColor(.secondary)
-            .multilineTextAlignment(.center)
+        VStack {
+            Text("Nothing here, yet")
+                .foregroundColor(.secondary)
+                .fontWeight(.medium)
+            
+            Text("Add tasks to get started.")
+                .foregroundColor(.secondary)
+                .multilineTextAlignment(.center)
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(Color("Background"))
+        
     }
+    
 }
 
 #Preview {

@@ -64,8 +64,7 @@ struct ContentView: View {
                 .navigationTitle("Tasks")
 
                 if showPlusButton {
-                    
-                        VStack {
+                    VStack {
                             Spacer()
                             Button(action: {
                                 let impactFeedback = UIImpactFeedbackGenerator(style: .medium)
@@ -83,9 +82,7 @@ struct ContentView: View {
                                     .background(Color.primary)
                                     .clipShape(Circle())
                             }
-                        }
-                        
-                        .padding(.bottom, 16)
+                    }
                     
                 }
 

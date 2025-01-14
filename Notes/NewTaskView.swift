@@ -24,7 +24,7 @@ struct NewTaskView: View {
             
             VStack {
                 VStack(alignment: .leading, spacing: 56) {
-                    TextField("Task Name", text: $content, axis: .vertical)
+                    TextField("New task", text: $content, axis: .vertical)
                         .font(.title2)
                         .padding(.horizontal, 16)
                         .focused($isContentFocused)
@@ -41,27 +41,30 @@ struct NewTaskView: View {
                         }) {
                             HStack {
                                 Image(systemName: "calendar")
-                                    .font(.callout)
+                                    .font(.subheadline)
+                                    .fontWeight(.medium)
                                     .foregroundColor(hasDueDate ? .primary : Color(UIColor.secondaryLabel))
 
                                 Text(hasDueDate ? "\(formattedDueDate(dueDate))" : "Deadline")
-                                    .font(.callout)
+                                    .font(.subheadline)
+                                    .fontWeight(.medium)
                                     .foregroundColor(hasDueDate ? .primary : Color(UIColor.secondaryLabel))
-
-                                if hasDueDate {
-                                    Image(systemName: "multiply.circle.fill")
-                                        .font(.callout)
-                                        .foregroundColor(Color(UIColor.secondaryLabel))
-                                        .onTapGesture {
-                                            clearDueDate()
-                                        }
-                                }
+//
+//                                if hasDueDate {
+//                                    Image(systemName: "multiply.circle.fill")
+//                                        .font(.callout)
+//                                        .foregroundColor(Color(UIColor.secondaryLabel))
+//                                        .onTapGesture {
+//                                            clearDueDate()
+//                                        }
+//                                }
                             }
-                            .padding(12)
+                            .padding(.horizontal, 12)
+                            .padding(.vertical, 12)
                             .cornerRadius(10)
                             .overlay(
                                 RoundedRectangle(cornerRadius: 10)
-                                    .stroke(Color(UIColor.systemGray4), lineWidth: 1)
+                                    .stroke(Color(UIColor.systemGray3), lineWidth: 0.5)
                             )
                         }
                         
@@ -112,10 +115,14 @@ struct NewTaskView: View {
             }
         }
         .sheet(isPresented: $showDatePicker) {
-            DueDatePicker(selectedDate: $dueDate, isPresented: $showDatePicker, onClear: clearDueDate)
-                .onDisappear {
-                    hasDueDate = dueDate != nil
-                }
+            ZStack {
+                Color("Background-elevated") // Replace with your desired color
+                    .ignoresSafeArea()
+                DueDatePicker(selectedDate: $dueDate, isPresented: $showDatePicker, onClear: clearDueDate)
+                    .onDisappear {
+                        hasDueDate = dueDate != nil
+                    }
+            }
         }
     }
 
