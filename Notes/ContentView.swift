@@ -33,7 +33,6 @@ struct ContentView: View {
     @StateObject private var viewModel = TasksViewModel()
     @State private var showNewTaskView = false
     @State private var backgroundOpacity: Double = 0.0
-    @State private var showPlusButton = true
 
     var body: some View {
         NavigationView {
@@ -63,27 +62,23 @@ struct ContentView: View {
                 .padding(.horizontal, 16)
                 .navigationTitle("Tasks")
 
-                if showPlusButton {
-                    VStack {
-                            Spacer()
-                            Button(action: {
-                                let impactFeedback = UIImpactFeedbackGenerator(style: .medium)
-                                impactFeedback.impactOccurred()
-                                withAnimation {
-                                    showNewTaskView = true
-                                    showPlusButton = false
-                                }
-                            }) {
-                                Image(systemName: "plus")
-                                    .font(.title2)
-                                    .fontWeight(.semibold)
-                                    .foregroundColor(Color(UIColor.systemGray6))
-                                    .frame(width: 56, height: 56)
-                                    .background(Color.primary)
-                                    .clipShape(Circle())
-                            }
+                VStack {
+                    Spacer()
+                    Button(action: {
+                        let impactFeedback = UIImpactFeedbackGenerator(style: .medium)
+                        impactFeedback.impactOccurred()
+                        withAnimation {
+                            showNewTaskView = true
+                        }
+                    }) {
+                        Image(systemName: "plus")
+                            .font(.title2)
+                            .fontWeight(.semibold)
+                            .foregroundColor(Color(UIColor.systemGray6))
+                            .frame(width: 56, height: 56)
+                            .background(Color.primary)
+                            .clipShape(Circle())
                     }
-                    
                 }
 
                 if showNewTaskView {
@@ -95,23 +90,24 @@ struct ContentView: View {
                             }
                             showNewTaskView = false
                         }
-
-                    NewTaskView(viewModel: viewModel, isPresented: $showNewTaskView)
-                        .transition(.move(edge: .bottom))
-                        .onAppear {
-                            withAnimation(.easeInOut(duration: 0.1)) {
-                                backgroundOpacity = 0.4
-                            }
-                        }
-                        .onDisappear {
-                            withAnimation(.easeInOut(duration: 0.1)) {
-                                backgroundOpacity = 0.0
-                                showPlusButton = true
-                            }
-                        }
                 }
             }
+            .ignoresSafeArea(.keyboard, edges: .bottom)
             .background(Color("Background"))
+            .sheet(isPresented: $showNewTaskView) {
+                NewTaskView(viewModel: viewModel, isPresented: $showNewTaskView)
+                    .transition(.move(edge: .bottom))
+                    .onAppear {
+                        withAnimation(.easeInOut(duration: 0.1)) {
+                            backgroundOpacity = 0.4
+                        }
+                    }
+                    .onDisappear {
+                        withAnimation(.easeInOut(duration: 0.1)) {
+                            backgroundOpacity = 0.0
+                        }
+                    }
+            }
         }
         .ignoresSafeArea()
     }
