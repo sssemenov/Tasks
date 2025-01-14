@@ -183,6 +183,7 @@ struct ContentView: View {
                         }
                 }
             }
+            .background(Color("Background"))
         }
         .ignoresSafeArea()
     }

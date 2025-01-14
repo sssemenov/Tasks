@@ -97,6 +97,7 @@ struct TasksRowView: View {
 
 #Preview {
     Group {
+        
         // Full width preview
         ZStack {
             Color(hex: "ffffff")
@@ -166,7 +167,10 @@ struct TasksRowView: View {
                        task: taskCompleted,
                        viewModel: viewModel)
             }
+            
             .padding()
         }
     }
+    
 }
+

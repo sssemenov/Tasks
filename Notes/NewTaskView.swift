@@ -17,6 +17,7 @@ struct NewTaskView: View {
     @Binding var isPresented: Bool
     @State private var dueDate: Date? = nil
     @State private var hasDueDate: Bool = false
+    @State private var buttonVisible: Bool = false
 
     var body: some View {
         VStack {
@@ -24,20 +25,27 @@ struct NewTaskView: View {
             
             VStack {
                 VStack(alignment: .leading, spacing: 56) {
-                    TextField("New entry", text: $content, axis: .vertical)
+                    TextField("Task Name", text: $content, axis: .vertical)
                         .font(.title2)
                         .padding(.horizontal, 16)
                         .focused($isContentFocused)
+                        .onChange(of: content) { newValue in
+                            withAnimation {
+                                buttonVisible = !newValue.isEmpty
+                            }
+                        }
                     HStack {
                         Button(action: {
                             showingDatePicker.toggle()
                         }) {
                             HStack {
-                                Image(systemName: hasDueDate ? "flag.fill" : "flag")
+                                Image(systemName: "calendar")
                                     .font(.callout)
+                                    .foregroundColor(hasDueDate ? .primary : Color(UIColor.secondaryLabel))
 
                                 Text(hasDueDate ? "\(formattedDueDate(dueDate))" : "Deadline")
                                     .font(.callout)
+                                    .foregroundColor(hasDueDate ? .primary : Color(UIColor.secondaryLabel))
 
                                 if hasDueDate {
                                     Image(systemName: "multiply.circle.fill")
@@ -50,19 +58,12 @@ struct NewTaskView: View {
                                 }
                             }
                             .padding(12)
-                            .background(Color(UIColor.secondarySystemBackground))
+                            //.background(Color(UIColor.secondarySystemBackground))
                             .foregroundColor(.primary)
                             .cornerRadius(10)
                             .overlay(
                                 RoundedRectangle(cornerRadius: 10)
-                                    .stroke(
-                                        LinearGradient(
-                                            gradient: Gradient(colors: [Color(UIColor.secondarySystemBackground), Color(hex: "E6E6EF")]),
-                                            startPoint: .top,
-                                            endPoint: .bottom
-                                        ),
-                                        lineWidth: 1
-                                    )
+                                    .stroke(Color(UIColor.systemGray4), lineWidth: 1)
                             )
                         }
                         
@@ -91,6 +92,8 @@ struct NewTaskView: View {
                                 .background(Color.primary)
                                 .cornerRadius(999)
                             }
+                            .scaleEffect(buttonVisible ? 1.0 : 0.0)
+                            .animation(.interpolatingSpring(stiffness: 400, damping: 20), value: buttonVisible)
                         }
                     }
                     .padding(.horizontal, 16)
@@ -98,8 +101,8 @@ struct NewTaskView: View {
             }
             .padding(.top, 24)
             .padding(.bottom, 16)
-            .background(Color(UIColor.tertiarySystemBackground))
-            .clipShape(RoundedCornersShape(corners: [.topLeft, .topRight], radius: 20))
+            .background(Color("Background-elevated"))
+            .clipShape(RoundedCornersShape(corners: [.topLeft, .topRight], radius: 8))
             .shadow(color: Color.black.opacity(0.1), radius: 32, x: 0, y: 5)
             .onAppear {
                 isContentFocused = true
