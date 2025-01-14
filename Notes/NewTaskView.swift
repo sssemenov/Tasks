@@ -10,8 +10,7 @@ import SwiftUI
 struct NewTaskView: View {
     @ObservedObject var viewModel: TasksViewModel
     @State private var content: String = ""
-    @State private var showingDatePicker = false
-    @State private var showingReminderPicker = false
+    @State private var showDatePicker = false
     @FocusState private var isContentFocused: Bool
     @State private var viewOpacity: Double = 0.0
     @Binding var isPresented: Bool
@@ -36,7 +35,9 @@ struct NewTaskView: View {
                         }
                     HStack {
                         Button(action: {
-                            showingDatePicker.toggle()
+                            let impactFeedback = UIImpactFeedbackGenerator(style: .medium)
+                            impactFeedback.impactOccurred()
+                                showDatePicker.toggle()
                         }) {
                             HStack {
                                 Image(systemName: "calendar")
@@ -49,8 +50,7 @@ struct NewTaskView: View {
 
                                 if hasDueDate {
                                     Image(systemName: "multiply.circle.fill")
-                                        .font(.subheadline)
-                                        
+                                        .font(.callout)
                                         .foregroundColor(Color(UIColor.secondaryLabel))
                                         .onTapGesture {
                                             clearDueDate()
@@ -58,8 +58,6 @@ struct NewTaskView: View {
                                 }
                             }
                             .padding(12)
-                            //.background(Color(UIColor.secondarySystemBackground))
-                            .foregroundColor(.primary)
                             .cornerRadius(10)
                             .overlay(
                                 RoundedRectangle(cornerRadius: 10)
@@ -88,6 +86,7 @@ struct NewTaskView: View {
                                         .fontWeight(.bold)
                                         .foregroundColor(Color(UIColor.systemGray6))
                                 }
+                                .frame(width: 17, height: 17)
                                 .padding(12)
                                 .background(Color.primary)
                                 .cornerRadius(999)
@@ -106,29 +105,17 @@ struct NewTaskView: View {
             .shadow(color: Color.black.opacity(0.1), radius: 32, x: 0, y: 5)
             .onAppear {
                 isContentFocused = true
-                withAnimation(.easeIn(duration: 0.15)) {
-                    viewOpacity = 1.0
-                }
             }
             .onDisappear {
-                isContentFocused = false
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-                    withAnimation(.easeOut(duration: 0.3)) {
-                        viewOpacity = 0.0
-                    }
-                }
+                //isContentFocused = false
+
             }
         }
-        .opacity(viewOpacity)
-        .sheet(isPresented: $showingDatePicker) {
-            DueDatePicker(selectedDate: $dueDate, isPresented: $showingDatePicker, onClear: clearDueDate)
+        .sheet(isPresented: $showDatePicker) {
+            DueDatePicker(selectedDate: $dueDate, isPresented: $showDatePicker, onClear: clearDueDate)
                 .onDisappear {
                     hasDueDate = dueDate != nil
                 }
-        }
-        .sheet(isPresented: $showingReminderPicker) {
-            // Placeholder for Reminder Picker
-            Text("Reminder Picker")
         }
     }
 

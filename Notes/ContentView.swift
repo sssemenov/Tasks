@@ -29,71 +29,9 @@ struct Task: Identifiable, Codable {
     }
 }
 
-class TasksViewModel: ObservableObject {
-    @Published var tasks: [Task] = [] {
-        didSet {
-            saveTasks()
-        }
-    }
-    
-    private let tasksKey = "tasksKey"
-    
-    init() {
-        loadTasks()
-    }
-    
-    func addTask(content: String, dueDate: Date? = nil) {
-        let task = Task(content: content, date: Date(), isDone: false, dueDate: dueDate)
-        tasks.insert(task, at: 0)
-    }
-    
-    func deleteTask(at offsets: IndexSet) {
-        tasks.remove(atOffsets: offsets)
-    }
-    
-    func updateTask(task: Task, newContent: String, newDueDate: Date? = nil) {
-        if let index = tasks.firstIndex(where: { $0.id == task.id }) {
-            tasks[index].content = newContent
-            tasks[index].dueDate = newDueDate
-        }
-    }
-    
-    func toggleTaskDone(task: Task) {
-        if let index = tasks.firstIndex(where: { $0.id == task.id }) {
-            tasks[index].isDone.toggle()
-        }
-    }
-    
-    func updateDueDate(for task: Task, to newDueDate: Date?) {
-        if let index = tasks.firstIndex(where: { $0.id == task.id }) {
-            tasks[index].dueDate = newDueDate
-        }
-    }
-    
-    func deleteTaskById(_ id: UUID) {
-        if let index = tasks.firstIndex(where: { $0.id == id }) {
-            tasks.remove(at: index)
-        }
-    }
-    
-    private func saveTasks() {
-        if let encoded = try? JSONEncoder().encode(tasks) {
-            UserDefaults.standard.set(encoded, forKey: tasksKey)
-        }
-    }
-    
-    private func loadTasks() {
-        if let savedTasks = UserDefaults.standard.object(forKey: tasksKey) as? Data {
-            if let decodedTasks = try? JSONDecoder().decode([Task].self, from: savedTasks) {
-                tasks = decodedTasks
-            }
-        }
-    }
-}
-
 struct ContentView: View {
     @StateObject private var viewModel = TasksViewModel()
-    @State private var showingNewTaskView = false
+    @State private var showNewTaskView = false
     @State private var backgroundOpacity: Double = 0.0
     @State private var showPlusButton = true
 
@@ -102,15 +40,9 @@ struct ContentView: View {
             ZStack {
                 VStack(alignment: .center, spacing: 4) {
                     if viewModel.tasks.isEmpty {
-                        Spacer()
-                        Text("Nothing here, yet")
-                            .foregroundColor(.secondary)
-                            .fontWeight(.medium)
-                        Text("Add tasks to get started.")
-                            .foregroundColor(.secondary)
-                            .multilineTextAlignment(.center)
+                        EmptyView()
                     } else {
-                        ScrollView {
+                        ScrollView(showsIndicators: false) {
                             LazyVStack(spacing: 0) {
                                 ForEach(viewModel.tasks.sorted(by: { 
                                     ($0.dueDate ?? Date.distantFuture) < ($1.dueDate ?? Date.distantFuture) 
@@ -132,53 +64,52 @@ struct ContentView: View {
                 .navigationTitle("Tasks")
 
                 if showPlusButton {
-                    VStack {
-                        Spacer()
-                        Button(action: {
-                            let impactFeedback = UIImpactFeedbackGenerator(style: .medium)
-                            impactFeedback.impactOccurred()
-                            showingNewTaskView = true
-                            showPlusButton = false
-                        }) {
-                            Image(systemName: "plus")
-                                .font(.title2)
-                                .fontWeight(.semibold)
-                                .foregroundColor(Color(UIColor.systemGray6))
-                                .frame(width: 56, height: 56)
-                                .background(Color.primary)
-                                .clipShape(Circle())
+                    
+                        VStack {
+                            Spacer()
+                            Button(action: {
+                                let impactFeedback = UIImpactFeedbackGenerator(style: .medium)
+                                impactFeedback.impactOccurred()
+                                withAnimation {
+                                    showNewTaskView = true
+                                    showPlusButton = false
+                                }
+                            }) {
+                                Image(systemName: "plus")
+                                    .font(.title2)
+                                    .fontWeight(.semibold)
+                                    .foregroundColor(Color(UIColor.systemGray6))
+                                    .frame(width: 56, height: 56)
+                                    .background(Color.primary)
+                                    .clipShape(Circle())
+                            }
                         }
-                        .transition(.scale.combined(with: .opacity))
-                        .animation(.easeInOut(duration: 0.3), value: showPlusButton)
-                    }
-                    .ignoresSafeArea(.keyboard, edges: .bottom)
-                    .padding(.bottom, 16)
+                        
+                        .padding(.bottom, 16)
+                    
                 }
 
-                if showingNewTaskView {
+                if showNewTaskView {
                     Color.black.opacity(backgroundOpacity)
                         .ignoresSafeArea()
                         .onTapGesture {
                             withAnimation {
                                 backgroundOpacity = 0.0
                             }
-                            showingNewTaskView = false
+                            showNewTaskView = false
                         }
 
-                    NewTaskView(viewModel: viewModel, isPresented: $showingNewTaskView)
+                    NewTaskView(viewModel: viewModel, isPresented: $showNewTaskView)
+                        .transition(.move(edge: .bottom))
                         .onAppear {
-                            withAnimation {
+                            withAnimation(.easeInOut(duration: 0.1)) {
                                 backgroundOpacity = 0.4
                             }
                         }
                         .onDisappear {
-                            withAnimation {
+                            withAnimation(.easeInOut(duration: 0.1)) {
                                 backgroundOpacity = 0.0
-                            }
-                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-                                withAnimation(.easeInOut(duration: 0.3)) {
-                                    showPlusButton = true
-                                }
+                                showPlusButton = true
                             }
                         }
                 }
